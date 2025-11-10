@@ -1,0 +1,28 @@
+{
+  "name": "نظام إدارة درجات الطلاب",
+  "short_name": "إدارة الدرجات",
+  "description": "نظام متكامل لإدارة درجات الطلاب مع مسح QR كود",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#3498db",
+  "theme_color": "#3498db",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "scope": "/"
+}
