@@ -423,6 +423,7 @@
 
                 <button class="btn btn-success" id="loginBtn" disabled>🔗 الاتصال والتحميل</button>
                 <button class="btn btn-warning" id="retryBtn">🔄 إعادة المحاولة</button>
+                <button class="btn" id="useLocalDataBtn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">💾 استخدام البيانات المحلية</button>
             </div>
         </div>
 
@@ -451,6 +452,9 @@
                 </select>
                 <button class="btn" id="exportBtn" style="background: linear-gradient(135deg, #27ae60, #229954);">
                     📄 تصدير البيانات
+                </button>
+                <button class="btn" id="saveLocalBtn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+                    💾 حفظ البيانات محلياً
                 </button>
             </div>
 
@@ -586,6 +590,7 @@
     <script>
         // ========== إعدادات GitHub ==========
         const GITHUB_EXCEL_URL = 'https://raw.githubusercontent.com/ameen-algmady/grades1/main/students.xlsx';
+        const LOCAL_STORAGE_KEY = 'studentsData';
         
         // ========== العناصر الرئيسية في الصفحة ==========
         const loginSection = document.getElementById('loginSection');
@@ -593,6 +598,8 @@
         const loginBtn = document.getElementById('loginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         const retryBtn = document.getElementById('retryBtn');
+        const useLocalDataBtn = document.getElementById('useLocalDataBtn');
+        const saveLocalBtn = document.getElementById('saveLocalBtn');
         const teacherIdInput = document.getElementById('teacherId');
         const studentsTableBody = document.getElementById('studentsTableBody');
         const loadingDiv = document.getElementById('loading');
@@ -612,6 +619,7 @@
         let filteredStudents = [];
         let allStudents = [];
         let currentEditStudent = null;
+        let usingLocalData = false;
 
         // ========== دوال التحقق ==========
         function validateTeacherId(teacherId) {
@@ -668,6 +676,31 @@
             connectionStatus.style.borderColor = borderColors[type] || borderColors.info;
         }
 
+        // ========== إدارة البيانات المحلية ==========
+        function saveDataToLocalStorage() {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allStudents));
+                showSuccess('تم حفظ البيانات محلياً بنجاح');
+                return true;
+            } catch (error) {
+                showError('فشل في حفظ البيانات محلياً: ' + error.message);
+                return false;
+            }
+        }
+
+        function loadDataFromLocalStorage() {
+            try {
+                const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (data) {
+                    allStudents = JSON.parse(data);
+                    return true;
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات المحلية:', error);
+            }
+            return false;
+        }
+
         // ========== الاتصال بـ GitHub وتحويل Excel ==========
         async function loadExcelFromGitHub() {
             updateConnectionStatus('🌐 جاري الاتصال بـ GitHub...', 'info');
@@ -692,9 +725,13 @@
                 const processed = processExcelData(excelData);
                 allStudents = processed;
                 
+                // حفظ البيانات المحلية تلقائياً عند نجاح التحميل
+                saveDataToLocalStorage();
+                
                 updateConnectionStatus(`✅ تم التحويل بنجاح - ${allStudents.length} طالب`, 'success');
                 loginBtn.disabled = false;
                 loginBtn.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+                usingLocalData = false;
                 
                 console.log('📊 البيانات المحملة:', allStudents);
                 
@@ -704,9 +741,19 @@
                     ❌ فشل في التحميل من GitHub
                     <br><br>
                     <strong>تفاصيل الخطأ:</strong> ${error.message}
+                    <br><br>
+                    <strong>يمكنك استخدام البيانات المحلية المخزنة</strong>
                 `, 'error');
                 
-                loginBtn.disabled = true;
+                // محاولة تحميل البيانات المحلية عند فشل الاتصال
+                if (loadDataFromLocalStorage()) {
+                    updateConnectionStatus(`✅ تم تحميل ${allStudents.length} طالب من البيانات المحلية`, 'success');
+                    loginBtn.disabled = false;
+                    loginBtn.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+                    usingLocalData = true;
+                } else {
+                    loginBtn.disabled = true;
+                }
             }
         }
 
@@ -1055,6 +1102,19 @@
                 addSearchFunctionality();
                 document.getElementById('searchContainer').classList.remove('hidden');
                 
+                // إظهار حالة البيانات
+                if (usingLocalData) {
+                    teacherInfoDiv.innerHTML = `
+                        <h3>📊 معلومات المعلم (البيانات المحلية)</h3>
+                        <p>⚠️ يتم استخدام البيانات المحلية المخزنة - قد لا تكون محدثة</p>
+                    `;
+                } else {
+                    teacherInfoDiv.innerHTML = `
+                        <h3>📊 معلومات المعلم</h3>
+                        <p>مرحباً بك في نظام إدارة النتائج - البيانات loaded مباشرة من GitHub</p>
+                    `;
+                }
+                
                 showLoading(false);
                 showSuccess(`✅ تم تحميل ${filteredStudents.length} طالب`);
                 
@@ -1087,6 +1147,21 @@
 
         retryBtn.addEventListener('click', function() {
             loadExcelFromGitHub();
+        });
+
+        useLocalDataBtn.addEventListener('click', function() {
+            if (loadDataFromLocalStorage()) {
+                updateConnectionStatus(`✅ تم تحميل ${allStudents.length} طالب من البيانات المحلية`, 'success');
+                loginBtn.disabled = false;
+                loginBtn.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+                usingLocalData = true;
+            } else {
+                showError('لا توجد بيانات محلية مخزنة');
+            }
+        });
+
+        saveLocalBtn.addEventListener('click', function() {
+            saveDataToLocalStorage();
         });
 
         logoutBtn.addEventListener('click', function() {
@@ -1150,6 +1225,9 @@
             currentEditStudent.result2 = calculateResult(currentEditStudent, 2);
             currentEditStudent.total3 = calculateTotal(currentEditStudent, 3);
             currentEditStudent.result3 = calculateResult(currentEditStudent, 3);
+            
+            // حفظ التغييرات في البيانات المحلية
+            saveDataToLocalStorage();
             
             renderStudentsTable();
             displayStatistics(filteredStudents);
