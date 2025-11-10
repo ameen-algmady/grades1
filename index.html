@@ -1,866 +1,1183 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>نظام إدارة درجات الطلاب - مزامنة تلقائية</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    :root{--primary:#3498db;--success:#27ae60;--danger:#e74c3c;--light:#ecf0f1;--dark:#2c3e50}
-    *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Arial}
-    body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:20px;color:#2c3e50}
-    .container{max-width:1400px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-    .header{background:linear-gradient(135deg,#2c3e50,#34495e);color:#fff;padding:20px;text-align:center}
-    .header h1{font-weight:300}
-    .section{padding:20px}
-    .controls{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .btn{padding:10px 14px;border-radius:8px;border:0;cursor:pointer;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff}
-    .btn-plain{background:#ddd;color:#222}
-    .btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b)}
-    .btn-success{background:linear-gradient(135deg,#27ae60,#229954)}
-    .input{padding:10px;border-radius:8px;border:1px solid #ddd}
-    table{width:100%;border-collapse:collapse;margin-top:15px}
-    th{background:linear-gradient(135deg,#34495e,#2c3e50);color:#fff;padding:10px;text-align:right;font-weight:600}
-    td{padding:8px;border-bottom:1px solid #eee;text-align:right}
-    .student-name{color:var(--primary);cursor:pointer}
-    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center;padding:20px}
-    .modal .content{background:#fff;padding:20px;border-radius:10px;max-width:800px;width:100%;max-height:90vh;overflow:auto;direction:rtl}
-    .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    @media(max-width:768px){.form-grid{grid-template-columns:1fr}}
-    .status{padding:10px;border-radius:8px;margin-bottom:10px}
-    .status.off{background:#f8d7da;color:#721c24}
-    .status.on{background:#d4edda;color:#155724}
-    .small{font-size:13px;color:#666}
-    .sync-badge{background:#3498db;color:white;border-radius:12px;padding:2px 8px;font-size:12px;margin-right:5px}
-    .pending-badge{background:#f39c12;color:white;border-radius:12px;padding:2px 8px;font-size:12px;margin-right:5px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة درجات الطلاب - GitHub Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .section {
+            padding: 25px;
+            display: block;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .login-form {
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-logout {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+        
+        .teacher-info {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-right: 5px solid #3498db;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 15px 10px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ecf0f1;
+            text-align: right;
+            font-size: 14px;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .result-cell {
+            font-weight: bold;
+            text-align: center;
+            font-size: 13px;
+            padding: 8px 5px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .result-excellent {
+            color: #27ae60;
+            background-color: rgba(39, 174, 96, 0.1);
+            border-color: rgba(39, 174, 96, 0.3);
+        }
+        
+        .result-good {
+            color: #3498db;
+            background-color: rgba(52, 152, 219, 0.1);
+            border-color: rgba(52, 152, 219, 0.3);
+        }
+        
+        .result-average {
+            color: #f39c12;
+            background-color: rgba(243, 156, 18, 0.1);
+            border-color: rgba(243, 156, 18, 0.3);
+        }
+        
+        .result-poor {
+            color: #e74c3c;
+            background-color: rgba(231, 76, 60, 0.1);
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+        
+        .student-name {
+            color: #3498db;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            padding: 5px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .student-name:hover {
+            color: #2980b9;
+            background-color: rgba(52, 152, 219, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .edit-btn {
+            background-color: #f39c12;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .edit-btn:hover {
+            background-color: #e67e22;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+        
+        .search-container input,
+        .search-container select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .stats-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-right: 5px solid #3498db;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .connection-status {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* نافذة التعديل */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 2% auto;
+            padding: 25px;
+            border-radius: 15px;
+            width: 95%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            background: #f0f0f0;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .student-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .form-section {
+            grid-column: 1 / -1;
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: var(--dark-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            .search-container input,
+            .search-container select {
+                min-width: 100%;
+            }
+            
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+            }
+            
+            .student-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                margin: 5% auto;
+                padding: 15px;
+                width: 98%;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header section">
-      <h1>🎓 نظام إدارة درجات الطلاب - مزامنة تلقائية</h1>
-      <p class="small">تحميل من GitHub + تعديل + مزامنة تلقائية مع GitHub</p>
-    </div>
-
-    <div class="section">
-      <div class="controls">
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="rawUrlInput" class="input" style="min-width:420px" 
-                 placeholder="رابط ملف Excel على GitHub" 
-                 value="https://raw.githubusercontent.com/ameen-algmady/grades/main/students.xlsx">
-          <button id="setUrlBtn" class="btn btn-plain">تحديد الملف</button>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 نظام إدارة نتائج الطلاب</h1>
+            <p>اتصال مباشر مع GitHub - تحويل Excel إلى JSON تلقائي</p>
         </div>
 
-        <div style="display:flex;gap:8px;align-items:center">
-          <button id="loadDataBtn" class="btn btn-success">🔄 تحميل البيانات</button>
-          <button id="addStudentBtn" class="btn">➕ إضافة طالب</button>
-          <button id="manualSyncBtn" class="btn btn-success">🔁 مزامنة يدوية</button>
-        </div>
-      </div>
+        <!-- قسم تسجيل الدخول -->
+        <div id="loginSection" class="section">
+            <div class="login-form">
+                <h2 style="margin-bottom: 30px; color: #2c3e50;">🔐 تسجيل الدخول</h2>
+                
+                <div class="input-group">
+                    <input type="text" id="teacherId" placeholder="أدخل معرف المعلم..." autocomplete="off" value="ameen">
+                </div>
 
-      <div id="connectionBox" class="status small off" style="margin-top:12px">
-        حالة الاتصال: جاري التحميل...
-        <div id="syncInfo" style="margin-top:5px;font-size:12px">
-          <span id="syncStatus" class="sync-badge">💾 جاهز للمزامنة</span>
-          <span id="pendingChanges" style="display:none" class="pending-badge">0 تعديل قيد الانتظار</span>
-        </div>
-      </div>
+                <div class="connection-status" id="connectionStatus">
+                    ⏳ جاري الاتصال بـ GitHub وتحويل البيانات...
+                </div>
 
-      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-        <input id="searchInput" class="input" placeholder="بحث بالاسم أو الباركود ..." style="min-width:260px">
-        <select id="classFilter" class="input"><option value="">جميع الشعب</option></select>
-        <button id="exportExcelBtn" class="btn btn-plain">📊 تنزيل Excel</button>
-        <button id="setupGitHubBtn" class="btn btn-plain">⚙️ إعداد GitHub</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <div id="statsContainer"></div>
-      <div style="overflow-x:auto">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th><th>Barcode</th><th>اسم الطالب</th><th>الشعبة</th>
-              <th>مواظبة 1</th><th>شفهي 1</th><th>واجبات 1</th><th>تحريري 1</th><th>محصلة 1</th>
-              <th>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="studentsTableBody">
-            <tr><td colspan="10" style="text-align:center;padding:30px;color:#666">⏳ جاري تحميل البيانات...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Edit / Add -->
-  <div id="editModal" class="modal">
-    <div class="content">
-      <h3 id="modalTitle">تعديل طالب</h3>
-      <form id="studentForm">
-        <input type="hidden" id="editStudentId">
-        <div class="form-grid" style="margin-top:10px">
-          <div>
-            <label>الاسم *</label>
-            <input id="editName" class="input" required>
-          </div>
-          <div>
-            <label>Barcode</label>
-            <input id="editBarcode" class="input">
-          </div>
-          <div>
-            <label>الشعبة</label>
-            <input id="editClass" class="input">
-          </div>
-          <div>
-            <label>ID *</label>
-            <input id="editId" class="input" required>
-          </div>
-
-          <div>
-            <label>مواظبة 1</label>
-            <input id="editAttendance1" type="number" step="0.1" class="input" value="0">
-          </div>
-          <div>
-            <label>شفهي 1</label>
-            <input id="editOral1" type="number" step="0.1" class="input" value="0">
-          </div>
-          <div>
-            <label>واجبات 1</label>
-            <input id="editHomework1" type="number" step="0.1" class="input" value="0">
-          </div>
-          <div>
-            <label>تحريري 1</label>
-            <input id="editWritten1" type="number" step="0.1" class="input" value="0">
-          </div>
+                <button class="btn btn-success" id="loginBtn" disabled>🔗 الاتصال والتحميل</button>
+                <button class="btn btn-warning" id="retryBtn">🔄 إعادة المحاولة</button>
+            </div>
         </div>
 
-        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
-          <button type="submit" class="btn btn-success">💾 حفظ ومزامنة</button>
-          <button type="button" id="cancelBtn" class="btn btn-plain">إلغاء</button>
+        <!-- القسم الرئيسي -->
+        <div id="mainSection" class="section hidden">
+            <div class="controls">
+                <button class="btn btn-logout" id="logoutBtn">تسجيل الخروج</button>
+                <div style="color: #2c3e50; font-weight: bold;">
+                    <span>المعلم: </span>
+                    <span id="currentTeacher"></span>
+                    <span> | عدد الطلاب: </span>
+                    <span id="studentsCount">0</span>
+                </div>
+            </div>
+
+            <div id="teacherInfo" class="teacher-info hidden">
+                <h3>📊 معلومات المعلم</h3>
+                <p>مرحباً بك في نظام إدارة النتائج - البيانات loaded مباشرة من GitHub</p>
+            </div>
+
+            <!-- محرك البحث والتصفية -->
+            <div id="searchContainer" class="search-container hidden">
+                <input type="text" id="searchInput" placeholder="🔍 بحث بالاسم أو الباركود...">
+                <select id="classFilter">
+                    <option value="">جميع الشعب</option>
+                </select>
+                <button class="btn" id="exportBtn" style="background: linear-gradient(135deg, #27ae60, #229954);">
+                    📄 تصدير البيانات
+                </button>
+            </div>
+
+            <!-- الإحصائيات -->
+            <div id="statsContainer"></div>
+
+            <!-- الجدول -->
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Barcode</th>
+                            <th>اسم الطالب</th>
+                            <th>الشعبة</th>
+                            <th>مواظبة 1</th>
+                            <th>شفهي 1</th>
+                            <th>واجبات 1</th>
+                            <th>تحريري 1</th>
+                            <th>المجموع 1</th>
+                            <th>محصلة 1</th>
+                            <th>مواظبة 2</th>
+                            <th>شفهي 2</th>
+                            <th>واجبات 2</th>
+                            <th>تحريري 2</th>
+                            <th>المجموع 2</th>
+                            <th>محصلة 2</th>
+                            <th>مواظبة 3</th>
+                            <th>واجبات 3</th>
+                            <th>شفهي 3</th>
+                            <th>تحريري 3</th>
+                            <th>المجموع 3</th>
+                            <th>محصلة 3</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr>
+                            <td colspan="23" style="text-align: center; color: #666; padding: 40px;">
+                                ⏳ جاري تحميل البيانات...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-      </form>
+
+        <!-- قسم التحميل -->
+        <div id="loading" class="loading hidden">
+            ⏳ جاري تحميل البيانات...
+        </div>
+
+        <!-- نافذة تعديل الطالب -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h3>✏️ تعديل درجات الطالب: <span id="currentStudentName"></span></h3>
+                <form id="studentForm" class="student-form">
+                    <input type="hidden" id="editStudentId">
+                    
+                    <!-- الترم الأول -->
+                    <div class="form-section">
+                        <h4>📘 الترم الأول</h4>
+                    </div>
+                    <div class="form-group">
+                        <label for="editAttendance1">مواظبة 1:</label>
+                        <input type="number" id="editAttendance1" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editOral1">شفهي 1:</label>
+                        <input type="number" id="editOral1" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHomework1">واجبات 1:</label>
+                        <input type="number" id="editHomework1" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editWritten1">تحريري 1:</label>
+                        <input type="number" id="editWritten1" min="0" max="20" step="0.1">
+                    </div>
+
+                    <!-- الترم الثاني -->
+                    <div class="form-section">
+                        <h4>📗 الترم الثاني</h4>
+                    </div>
+                    <div class="form-group">
+                        <label for="editAttendance2">مواظبة 2:</label>
+                        <input type="number" id="editAttendance2" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editOral2">شفهي 2:</label>
+                        <input type="number" id="editOral2" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHomework2">واجبات 2:</label>
+                        <input type="number" id="editHomework2" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editWritten2">تحريري 2:</label>
+                        <input type="number" id="editWritten2" min="0" max="20" step="0.1">
+                    </div>
+
+                    <!-- الترم الثالث -->
+                    <div class="form-section">
+                        <h4>📙 الترم الثالث</h4>
+                    </div>
+                    <div class="form-group">
+                        <label for="editAttendance3">مواظبة 3:</label>
+                        <input type="number" id="editAttendance3" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editHomework3">واجبات 3:</label>
+                        <input type="number" id="editHomework3" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editOral3">شفهي 3:</label>
+                        <input type="number" id="editOral3" min="0" max="20" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="editWritten3">تحريري 3:</label>
+                        <input type="number" id="editWritten3" min="0" max="20" step="0.1">
+                    </div>
+
+                    <div class="form-section">
+                        <button type="submit" class="btn btn-success">💾 حفظ التغييرات</button>
+                        <button type="button" id="cancelEditBtn" class="btn btn-danger">❌ إلغاء</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Modal GitHub Setup -->
-  <div id="githubSetupModal" class="modal">
-    <div class="content" style="max-width:500px">
-      <h3>⚙️ إعدادات المزامنة مع GitHub</h3>
-      <div style="margin-top:15px">
-        <label>GitHub Token *</label>
-        <input id="githubToken" class="input" style="width:100%;margin-top:5px" 
-               placeholder="أدخل GitHub Personal Access Token" type="password">
-        <p class="small" style="margin-top:8px;color:#666">
-          للحصول على Token:<br>
-          1. اذهب إلى GitHub → Settings → Developer settings → Personal access tokens<br>
-          2. اختر "Tokens (classic)"<br>
-          3. أنشئ token جديد مع صلاحيات <strong>repo</strong><br>
-          4. الصق الـ token هنا
-        </p>
-      </div>
-      <div style="margin-top:15px">
-        <label>اسم المستخدم على GitHub *</label>
-        <input id="githubUsername" class="input" style="width:100%;margin-top:5px" 
-               placeholder="أدخل اسم المستخدم على GitHub">
-      </div>
-      <div style="margin-top:15px">
-        <label>اسم المستودع *</label>
-        <input id="githubRepo" class="input" style="width:100%;margin-top:5px" 
-               placeholder="أدخل اسم المستودع" value="grades">
-      </div>
-      <div style="margin-top:15px">
-        <label>مسار الملف في المستودع *</label>
-        <input id="githubPath" class="input" style="width:100%;margin-top:5px" 
-               placeholder="مسار الملف" value="students.xlsx">
-      </div>
-      <div style="margin-top:15px;display:flex;gap:8px;justify-content:flex-end">
-        <button id="saveGitHubBtn" class="btn btn-success">💾 حفظ الإعدادات</button>
-        <button id="cancelGitHubBtn" class="btn btn-plain">إلغاء</button>
-      </div>
-    </div>
-  </div>
+    <script>
+        // ========== إعدادات GitHub ==========
+        const GITHUB_EXCEL_URL = 'https://raw.githubusercontent.com/ameen-algmady/grades1/main/students.xlsx';
+        
+        // ========== العناصر الرئيسية في الصفحة ==========
+        const loginSection = document.getElementById('loginSection');
+        const mainSection = document.getElementById('mainSection');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const retryBtn = document.getElementById('retryBtn');
+        const teacherIdInput = document.getElementById('teacherId');
+        const studentsTableBody = document.getElementById('studentsTableBody');
+        const loadingDiv = document.getElementById('loading');
+        const teacherInfoDiv = document.getElementById('teacherInfo');
+        const currentTeacherSpan = document.getElementById('currentTeacher');
+        const studentsCountSpan = document.getElementById('studentsCount');
+        const exportBtn = document.getElementById('exportBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const editModal = document.getElementById('editModal');
+        const closeModal = document.querySelector('.close-modal');
+        const studentForm = document.getElementById('studentForm');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const currentStudentName = document.getElementById('currentStudentName');
 
-<script>
-/* ================== الإعدادات ================== */
-const DEFAULT_RAW_URL = 'https://raw.githubusercontent.com/ameen-algmady/grades1/main/students.xlsx';
+        // ========== المتغيرات العامة ==========
+        let currentTeacherId = '';
+        let filteredStudents = [];
+        let allStudents = [];
+        let currentEditStudent = null;
 
-/* ========== عناصر الواجهة ========== */
-const rawUrlInput = document.getElementById('rawUrlInput');
-const setUrlBtn = document.getElementById('setUrlBtn');
-const loadDataBtn = document.getElementById('loadDataBtn');
-const addStudentBtn = document.getElementById('addStudentBtn');
-const manualSyncBtn = document.getElementById('manualSyncBtn');
-const exportExcelBtn = document.getElementById('exportExcelBtn');
-const setupGitHubBtn = document.getElementById('setupGitHubBtn');
-const connectionBox = document.getElementById('connectionBox');
-const syncStatus = document.getElementById('syncStatus');
-const pendingChanges = document.getElementById('pendingChanges');
-const searchInput = document.getElementById('searchInput');
-const classFilter = document.getElementById('classFilter');
-const studentsTableBody = document.getElementById('studentsTableBody');
-const editModal = document.getElementById('editModal');
-const studentForm = document.getElementById('studentForm');
-const cancelBtn = document.getElementById('cancelBtn');
-const githubSetupModal = document.getElementById('githubSetupModal');
-const githubToken = document.getElementById('githubToken');
-const githubUsername = document.getElementById('githubUsername');
-const githubRepo = document.getElementById('githubRepo');
-const githubPath = document.getElementById('githubPath');
-const saveGitHubBtn = document.getElementById('saveGitHubBtn');
-const cancelGitHubBtn = document.getElementById('cancelGitHubBtn');
+        // ========== دوال التحقق ==========
+        function validateTeacherId(teacherId) {
+            return /^[a-zA-Z0-9_\-]+$/.test(teacherId) && teacherId.length >= 3;
+        }
 
-/* حقول التعديل */
-const fields = {
-  id: document.getElementById('editId'),
-  name: document.getElementById('editName'),
-  barcode: document.getElementById('editBarcode'),
-  class: document.getElementById('editClass'),
-  attendance1: document.getElementById('editAttendance1'),
-  oral1: document.getElementById('editOral1'),
-  homework1: document.getElementById('editHomework1'),
-  written1: document.getElementById('editWritten1')
-};
+        // ========== دوال الواجهة ==========
+        function showLoading(show, message = '⏳ جاري تحميل البيانات...') {
+            if (show) {
+                loadingDiv.classList.remove('hidden');
+                loadingDiv.innerHTML = `<p>${message}</p>`;
+            } else {
+                loadingDiv.classList.add('hidden');
+            }
+        }
 
-/* ========== متغيرات الحالة ========== */
-let RAW_URL = DEFAULT_RAW_URL;
-let allStudents = [];
-let filteredStudents = [];
-let pendingSyncCount = 0;
-let isOnline = navigator.onLine;
+        function showError(message) {
+            loadingDiv.classList.remove('hidden');
+            loadingDiv.innerHTML = `
+                <div style="color: red; text-align: center; padding: 20px;">
+                    <p>❌ ${message}</p>
+                    <button onclick="hideError()" style="margin: 5px; padding: 5px 10px; background: #e74c3c; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                        إغلاق
+                    </button>
+                </div>
+            `;
+        }
 
-// إعدادات GitHub
-let GITHUB_CONFIG = {
-  token: '',
-  username: '',
-  repo: 'grades',
-  path: 'students.xlsx'
-};
+        function hideError() {
+            loadingDiv.classList.add('hidden');
+        }
 
-const LS_PREFIX = 'grades_sync_';
-const LS_KEY_DATA = LS_PREFIX + 'data';
-const LS_KEY_RAWURL = LS_PREFIX + 'rawurl';
-const LS_KEY_GITHUB = LS_PREFIX + 'github';
-const LS_KEY_PENDING = LS_PREFIX + 'pending';
+        function showSuccess(message) {
+            loadingDiv.classList.remove('hidden');
+            loadingDiv.innerHTML = `<p style="color: green;">✅ ${message}</p>`;
+            setTimeout(() => loadingDiv.classList.add('hidden'), 3000);
+        }
 
-/* ========== وظائف مساعدة ========== */
-function setStatus(text, online = false) {
-  const statusElement = connectionBox.querySelector('.status');
-  if (statusElement) {
-    statusElement.textContent = 'حالة الاتصال: ' + text;
-  }
-  connectionBox.className = 'status small ' + (online ? 'on' : 'off');
-}
+        function updateConnectionStatus(message, type = 'info') {
+            const colors = {
+                info: '#fff3cd',
+                success: '#d4edda',
+                error: '#f8d7da'
+            };
+            
+            const borderColors = {
+                info: '#ffeaa7',
+                success: '#c3e6cb',
+                error: '#f5c6cb'
+            };
+            
+            connectionStatus.innerHTML = message;
+            connectionStatus.style.background = colors[type] || colors.info;
+            connectionStatus.style.borderColor = borderColors[type] || borderColors.info;
+        }
 
-function updateSyncDisplay() {
-  if (pendingSyncCount > 0) {
-    pendingChanges.style.display = 'inline';
-    pendingChanges.textContent = pendingSyncCount + ' تعديل قيد الانتظار';
-    syncStatus.textContent = '⏳ في انتظار المزامنة';
-    syncStatus.className = 'pending-badge';
-  } else {
-    pendingChanges.style.display = 'none';
-    syncStatus.textContent = '✅ متزامن مع GitHub';
-    syncStatus.className = 'sync-badge';
-  }
-}
+        // ========== الاتصال بـ GitHub وتحويل Excel ==========
+        async function loadExcelFromGitHub() {
+            updateConnectionStatus('🌐 جاري الاتصال بـ GitHub...', 'info');
+            
+            try {
+                const response = await fetch(GITHUB_EXCEL_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`فشل في تحميل الملف: ${response.status} ${response.statusText}`);
+                }
+                
+                updateConnectionStatus('📁 تم الاتصال - جاري تحميل الملف...', 'info');
+                
+                const arrayBuffer = await response.arrayBuffer();
+                
+                updateConnectionStatus('🔄 جاري تحويل Excel إلى JSON...', 'info');
+                
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                
+                const processed = processExcelData(excelData);
+                allStudents = processed;
+                
+                updateConnectionStatus(`✅ تم التحويل بنجاح - ${allStudents.length} طالب`, 'success');
+                loginBtn.disabled = false;
+                loginBtn.style.background = 'linear-gradient(135deg, #27ae60, #229954)';
+                
+                console.log('📊 البيانات المحملة:', allStudents);
+                
+            } catch (error) {
+                console.error('❌ خطأ في التحميل:', error);
+                updateConnectionStatus(`
+                    ❌ فشل في التحميل من GitHub
+                    <br><br>
+                    <strong>تفاصيل الخطأ:</strong> ${error.message}
+                `, 'error');
+                
+                loginBtn.disabled = true;
+            }
+        }
 
-function saveToLocal() {
-  localStorage.setItem(LS_KEY_DATA, JSON.stringify(allStudents));
-}
+        // ========== معالجة بيانات Excel ==========
+        function processExcelData(excelData) {
+            if (!excelData || excelData.length < 2) {
+                throw new Error('الملف لا يحتوي على بيانات صحيحة');
+            }
 
-function loadFromLocal() {
-  try {
-    const s = localStorage.getItem(LS_KEY_DATA);
-    return s ? JSON.parse(s) : null;
-  } catch (e) {
-    return null;
-  }
-}
+            const headers = excelData[0];
+            const students = [];
+            
+            console.log('🔍 رؤوس الأعمدة:', headers);
 
-function saveGitHubConfig() {
-  localStorage.setItem(LS_KEY_GITHUB, JSON.stringify(GITHUB_CONFIG));
-}
+            // البحث عن أعمدة المعرف (العمود X)
+            const teacherIdColumn = 23; // العمود X (24-1)
+            const idColumn = 0; // ID
+            const barcodeColumn = 1; // Barcode
+            const nameColumn = 2; // الاسم
+            const classColumn = 3; // الشعبة
+            
+            // الترم الأول
+            const attendance1Column = 4;
+            const oral1Column = 5;
+            const homework1Column = 6;
+            const written1Column = 7;
+            const total1Column = 8;
+            const result1Column = 9;
+            
+            // الترم الثاني
+            const attendance2Column = 10;
+            const oral2Column = 11;
+            const homework2Column = 12;
+            const written2Column = 13;
+            const total2Column = 14;
+            const result2Column = 15;
+            
+            // الترم الثالث
+            const attendance3Column = 16;
+            const homework3Column = 17;
+            const oral3Column = 18;
+            const written3Column = 19;
+            const total3Column = 20;
+            const result3Column = 21;
 
-function loadGitHubConfig() {
-  try {
-    const config = localStorage.getItem(LS_KEY_GITHUB);
-    if (config) {
-      GITHUB_CONFIG = JSON.parse(config);
-      return true;
-    }
-  } catch (e) {
-    console.error('Error loading GitHub config:', e);
-  }
-  return false;
-}
+            for (let i = 1; i < excelData.length; i++) {
+                const row = excelData[i];
+                if (row.length === 0) continue;
 
-function savePendingCount() {
-  localStorage.setItem(LS_KEY_PENDING, pendingSyncCount.toString());
-}
+                const student = {
+                    id: row[idColumn] || `STD${i}`,
+                    barcode: row[barcodeColumn] || '',
+                    name: row[nameColumn] || 'بدون اسم',
+                    class: row[classColumn] || '---',
+                    teacherId: (row[teacherIdColumn] || '').toString().trim(),
+                    
+                    // الترم الأول
+                    attendance1: formatGrade(row[attendance1Column]),
+                    oral1: formatGrade(row[oral1Column]),
+                    homework1: formatGrade(row[homework1Column]),
+                    written1: formatGrade(row[written1Column]),
+                    total1: formatGrade(row[total1Column]),
+                    result1: formatGrade(row[result1Column]),
+                    
+                    // الترم الثاني
+                    attendance2: formatGrade(row[attendance2Column]),
+                    oral2: formatGrade(row[oral2Column]),
+                    homework2: formatGrade(row[homework2Column]),
+                    written2: formatGrade(row[written2Column]),
+                    total2: formatGrade(row[total2Column]),
+                    result2: formatGrade(row[result2Column]),
+                    
+                    // الترم الثالث
+                    attendance3: formatGrade(row[attendance3Column]),
+                    homework3: formatGrade(row[homework3Column]),
+                    oral3: formatGrade(row[oral3Column]),
+                    written3: formatGrade(row[written3Column]),
+                    total3: formatGrade(row[total3Column]),
+                    result3: formatGrade(row[result3Column]),
+                    
+                    // حفظ البيانات الكاملة
+                    fullData: row
+                };
 
-function loadPendingCount() {
-  try {
-    const count = localStorage.getItem(LS_KEY_PENDING);
-    pendingSyncCount = count ? parseInt(count) : 0;
-    updateSyncDisplay();
-  } catch (e) {
-    pendingSyncCount = 0;
-    updateSyncDisplay();
-  }
-}
+                if (student.teacherId) {
+                    students.push(student);
+                }
+            }
 
-function incrementPendingSync() {
-  pendingSyncCount++;
-  savePendingCount();
-  updateSyncDisplay();
-  
-  // محاولة المزامنة تلقائياً إذا كان متصلاً بالإنترنت
-  if (isOnline && GITHUB_CONFIG.token) {
-    setTimeout(() => syncWithGitHub(), 1000);
-  }
-}
+            return students;
+        }
 
-function saveRawUrlToLocal() {
-  localStorage.setItem(LS_KEY_RAWURL, RAW_URL || '');
-}
+        function formatGrade(value) {
+            if (value === null || value === undefined || value === '') return '0';
+            if (typeof value === 'number') return value.toString();
+            return value.toString().trim();
+        }
 
-function loadRawUrlFromLocal() {
-  const v = localStorage.getItem(LS_KEY_RAWURL);
-  if (v) RAW_URL = v;
-}
+        // ========== تصفية الطلاب حسب المعلم ==========
+        function filterStudentsByTeacher() {
+            if (!allStudents || allStudents.length === 0) {
+                filteredStudents = [];
+                return;
+            }
 
-/* ========== تحميل Excel من GitHub ========== */
-async function fetchExcelFromRaw() {
-  if (!RAW_URL) throw new Error('لم يتم تحديد raw URL');
-  
-  setStatus('جاري التحميل من GitHub...', false);
-  
-  const resp = await fetch(RAW_URL);
-  
-  if (!resp.ok) {
-    throw new Error(`فشل تحميل الملف: ${resp.status} ${resp.statusText}`);
-  }
-  
-  const arrayBuffer = await resp.arrayBuffer();
-  
-  if (arrayBuffer.byteLength === 0) {
-    throw new Error('الملف فارغ أو غير موجود');
-  }
-  
-  const workbook = XLSX.read(arrayBuffer, {type: 'array'});
-  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
-  
-  return { workbook, rows };
-}
+            filteredStudents = allStudents.filter(student => 
+                student.teacherId === currentTeacherId
+            );
 
-/* ========== معالجة بيانات Excel ========== */
-function processExcelData(rows) {
-  if (!rows || rows.length < 2) return [];
-  
-  const students = [];
-  
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || row.length === 0) continue;
-    
-    const student = {
-      id: (row[0] || `STD${i}`).toString().trim(),
-      barcode: (row[1] || '').toString().trim(),
-      name: (row[2] || 'بدون اسم').toString().trim(),
-      class: (row[3] || '---').toString().trim(),
-      attendance1: formatGrade(row[4]),
-      oral1: formatGrade(row[5]),
-      homework1: formatGrade(row[6]),
-      written1: formatGrade(row[7]),
-      total1: '0',
-      result1: '0'
-    };
-    
-    const total = (parseFloat(student.attendance1) || 0) + 
-                  (parseFloat(student.oral1) || 0) + 
-                  (parseFloat(student.homework1) || 0) + 
-                  (parseFloat(student.written1) || 0);
-    
-    student.total1 = total.toString();
-    student.result1 = (total / 5).toFixed(1);
-    
-    students.push(student);
-  }
-  
-  return students;
-}
+            console.log(`👨‍🏫 تم تصفية ${filteredStudents.length} طالب للمعلم ${currentTeacherId}`);
+        }
 
-function formatGrade(value) {
-  if (value === null || value === undefined || value === '') return '0';
-  if (typeof value === 'number') return value.toString();
-  return value.toString().trim() || '0';
-}
+        // ========== البحث والتصفية ==========
+        function addSearchFunctionality() {
+            const searchContainer = document.getElementById('searchContainer');
+            
+            // تحديث قائمة الشعب
+            updateClassFilter();
+            
+            document.getElementById('searchInput').addEventListener('input', filterStudents);
+            document.getElementById('classFilter').addEventListener('change', filterStudents);
+        }
 
-/* ========== المزامنة مع GitHub ========== */
-async function syncWithGitHub() {
-  if (!GITHUB_CONFIG.token || !isOnline) {
-    return false;
-  }
+        function updateClassFilter() {
+            const classFilter = document.getElementById('classFilter');
+            const classes = [...new Set(filteredStudents.map(student => student.class).filter(c => c))];
+            
+            classFilter.innerHTML = '<option value="">جميع الشعب</option>';
+            classes.forEach(className => {
+                const option = document.createElement('option');
+                option.value = className;
+                option.textContent = className;
+                classFilter.appendChild(option);
+            });
+        }
 
-  try {
-    setStatus('جاري المزامنة مع GitHub...', true);
-    syncStatus.textContent = '🔄 جاري المزامنة...';
+        function filterStudents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const selectedClass = document.getElementById('classFilter').value;
+            
+            let filtered = allStudents.filter(student => 
+                student.teacherId === currentTeacherId
+            );
+            
+            // تطبيق البحث
+            if (searchTerm) {
+                filtered = filtered.filter(student => 
+                    student.name.toLowerCase().includes(searchTerm) ||
+                    student.barcode.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // تطبيق تصفية الشعبة
+            if (selectedClass) {
+                filtered = filtered.filter(student => student.class === selectedClass);
+            }
+            
+            filteredStudents = filtered;
+            renderStudentsTable();
+            displayStatistics(filteredStudents);
+        }
 
-    // الحصول على معلومات الملف الحالي من GitHub
-    let fileSha = null;
-    try {
-      const fileInfo = await getGitHubFileInfo();
-      fileSha = fileInfo.sha;
-    } catch (error) {
-      console.log('الملف غير موجود على GitHub، سيتم إنشاء ملف جديد');
-    }
+        // ========== عرض الجدول ==========
+        function renderStudentsTable() {
+            studentsTableBody.innerHTML = '';
+            
+            if (filteredStudents.length === 0) {
+                studentsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="23" style="text-align: center; color: #666; padding: 40px;">
+                            📝 لا توجد بيانات للعرض للمعلم ${currentTeacherId}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filteredStudents.forEach((student) => {
+                const row = document.createElement('tr');
+                
+                function getResultClass(result) {
+                    const value = parseFloat(result) || 0;
+                    if (value >= 4.5) return 'result-excellent';
+                    if (value >= 3.5) return 'result-good';
+                    if (value >= 2.5) return 'result-average';
+                    return 'result-poor';
+                }
 
-    // إنشاء ملف Excel من البيانات الحالية
-    const excelBuffer = createExcelBuffer();
-    
-    // رفع الملف إلى GitHub
-    await uploadToGitHub(excelBuffer, fileSha);
-    
-    // إعادة تعيين عداد التعديلات المنتظرة
-    pendingSyncCount = 0;
-    savePendingCount();
-    updateSyncDisplay();
-    
-    setStatus('تم المزامنة بنجاح مع GitHub', true);
-    return true;
-    
-  } catch (error) {
-    console.error('خطأ في المزامنة:', error);
-    setStatus('فشل المزامنة مع GitHub', false);
-    syncStatus.textContent = '❌ فشل المزامنة';
-    return false;
-  }
-}
+                const result1Class = getResultClass(student.result1);
+                const result2Class = getResultClass(student.result2);
+                const result3Class = getResultClass(student.result3);
+                
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.barcode}</td>
+                    <td>
+                        <span class="student-name" onclick="openEditModal('${student.id}')">
+                            ${student.name}
+                        </span>
+                    </td>
+                    <td>${student.class}</td>
+                    <td>${student.attendance1}</td>
+                    <td>${student.oral1}</td>
+                    <td>${student.homework1}</td>
+                    <td>${student.written1}</td>
+                    <td><strong>${student.total1}</strong></td>
+                    <td class="result-cell ${result1Class}">${student.result1}</td>
+                    <td>${student.attendance2}</td>
+                    <td>${student.oral2}</td>
+                    <td>${student.homework2}</td>
+                    <td>${student.written2}</td>
+                    <td><strong>${student.total2}</strong></td>
+                    <td class="result-cell ${result2Class}">${student.result2}</td>
+                    <td>${student.attendance3}</td>
+                    <td>${student.homework3}</td>
+                    <td>${student.oral3}</td>
+                    <td>${student.written3}</td>
+                    <td><strong>${student.total3}</strong></td>
+                    <td class="result-cell ${result3Class}">${student.result3}</td>
+                    <td>
+                        <button class="edit-btn" onclick="openEditModal('${student.id}')">تعديل</button>
+                    </td>
+                `;
+                studentsTableBody.appendChild(row);
+            });
+        }
 
-async function getGitHubFileInfo() {
-  const response = await fetch(
-    `https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
-    {
-      headers: {
-        'Authorization': `token ${GITHUB_CONFIG.token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    }
-  );
-  
-  if (!response.ok) {
-    throw new Error(`فشل جلب معلومات الملف: ${response.status}`);
-  }
-  
-  return await response.json();
-}
+        // ========== نافذة التعديل ==========
+        function openEditModal(studentId) {
+            currentEditStudent = filteredStudents.find(s => s.id === studentId);
+            if (!currentEditStudent) return;
+            
+            currentStudentName.textContent = currentEditStudent.name;
+            document.getElementById('editStudentId').value = currentEditStudent.id;
+            
+            // تعبئة بيانات الترم الأول
+            document.getElementById('editAttendance1').value = currentEditStudent.attendance1;
+            document.getElementById('editOral1').value = currentEditStudent.oral1;
+            document.getElementById('editHomework1').value = currentEditStudent.homework1;
+            document.getElementById('editWritten1').value = currentEditStudent.written1;
+            
+            // تعبئة بيانات الترم الثاني
+            document.getElementById('editAttendance2').value = currentEditStudent.attendance2;
+            document.getElementById('editOral2').value = currentEditStudent.oral2;
+            document.getElementById('editHomework2').value = currentEditStudent.homework2;
+            document.getElementById('editWritten2').value = currentEditStudent.written2;
+            
+            // تعبئة بيانات الترم الثالث
+            document.getElementById('editAttendance3').value = currentEditStudent.attendance3;
+            document.getElementById('editHomework3').value = currentEditStudent.homework3;
+            document.getElementById('editOral3').value = currentEditStudent.oral3;
+            document.getElementById('editWritten3').value = currentEditStudent.written3;
+            
+            editModal.style.display = 'block';
+        }
 
-function createExcelBuffer() {
-  const workbook = XLSX.utils.book_new();
-  
-  const rows = [
-    ['ID', 'Barcode', 'Name', 'Class', 'Attendance1', 'Oral1', 'Homework1', 'Written1', 'Total1', 'Result1']
-  ];
-  
-  allStudents.forEach(student => {
-    rows.push([
-      student.id,
-      student.barcode,
-      student.name,
-      student.class,
-      student.attendance1,
-      student.oral1,
-      student.homework1,
-      student.written1,
-      student.total1,
-      student.result1
-    ]);
-  });
-  
-  const worksheet = XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
-  
-  const excelBinary = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-  return excelBinary;
-}
+        function closeEditModal() {
+            editModal.style.display = 'none';
+            studentForm.reset();
+            currentEditStudent = null;
+        }
 
-async function uploadToGitHub(excelBuffer, sha = null) {
-  // تحويل ArrayBuffer إلى base64
-  const base64Content = btoa(
-    new Uint8Array(excelBuffer).reduce(
-      (data, byte) => data + String.fromCharCode(byte),
-      ''
-    )
-  );
-  
-  const payload = {
-    message: `تحديث تلقائي للدرجات - ${new Date().toLocaleString('ar-EG')}`,
-    content: base64Content,
-    branch: 'main'
-  };
-  
-  if (sha) {
-    payload.sha = sha;
-  }
-  
-  const response = await fetch(
-    `https://api.github.com/repos/${GITHUB_CONFIG.username}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`,
-    {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${GITHUB_CONFIG.token}`,
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    }
-  );
-  
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(`فشل رفع الملف: ${response.status} - ${errorData.message || 'Unknown error'}`);
-  }
-  
-  return await response.json();
-}
+        // ========== إحصائيات النتائج ==========
+        function calculateStatistics(students) {
+            const stats = {
+                total: students.length,
+                excellent: 0,
+                good: 0,
+                average: 0,
+                poor: 0
+            };
+            
+            students.forEach(student => {
+                const avg = (parseFloat(student.result1 || 0) + 
+                            parseFloat(student.result2 || 0) + 
+                            parseFloat(student.result3 || 0)) / 3;
+                
+                if (avg >= 4.5) stats.excellent++;
+                else if (avg >= 3.5) stats.good++;
+                else if (avg >= 2.5) stats.average++;
+                else stats.poor++;
+            });
+            
+            return stats;
+        }
 
-/* ========== عرض البيانات ========== */
-function updateClassFilter() {
-  const classes = Array.from(new Set(allStudents.map(s => s.class || '---'))).sort();
-  classFilter.innerHTML = '<option value="">جميع الشعب</option>';
-  classes.forEach(c => {
-    const opt = document.createElement('option');
-    opt.value = c;
-    opt.textContent = c;
-    classFilter.appendChild(opt);
-  });
-}
+        function displayStatistics(students) {
+            const stats = calculateStatistics(students);
+            const statsHTML = `
+                <div class="stats-container">
+                    <h4 style="margin: 0 0 15px 0; color: #2c3e50;">📊 إحصائيات النتائج</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div style="color: #27ae60; font-weight: bold; font-size: 18px;">${stats.excellent}</div>
+                            <div style="font-size: 12px; color: #666;">ممتاز</div>
+                        </div>
+                        <div class="stat-item">
+                            <div style="color: #3498db; font-weight: bold; font-size: 18px;">${stats.good}</div>
+                            <div style="font-size: 12px; color: #666;">جيد</div>
+                        </div>
+                        <div class="stat-item">
+                            <div style="color: #f39c12; font-weight: bold; font-size: 18px;">${stats.average}</div>
+                            <div style="font-size: 12px; color: #666;">متوسط</div>
+                        </div>
+                        <div class="stat-item">
+                            <div style="color: #e74c3c; font-weight: bold; font-size: 18px;">${stats.poor}</div>
+                            <div style="font-size: 12px; color: #666;">ضعيف</div>
+                        </div>
+                        <div class="stat-item" style="background: linear-gradient(135deg, #3498db, #2980b9); color: white;">
+                            <div style="font-weight: bold; font-size: 18px;">${stats.total}</div>
+                            <div style="font-size: 12px;">المجموع الكلي</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const existingStats = document.getElementById('statsContainer');
+            if (existingStats) {
+                existingStats.innerHTML = statsHTML;
+            } else {
+                const statsContainer = document.createElement('div');
+                statsContainer.id = 'statsContainer';
+                statsContainer.innerHTML = statsHTML;
+                teacherInfoDiv.parentNode.insertBefore(statsContainer, teacherInfoDiv.nextSibling);
+            }
+        }
 
-function renderStudentsTable() {
-  studentsTableBody.innerHTML = '';
-  
-  if (!filteredStudents || filteredStudents.length === 0) {
-    studentsTableBody.innerHTML = 
-      '<tr><td colspan="10" style="text-align:center;color:#666;padding:30px">لا توجد بيانات للعرض</td></tr>';
-    return;
-  }
-  
-  filteredStudents.forEach(s => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${s.id}</td>
-      <td>${s.barcode}</td>
-      <td><span class="student-name" data-id="${s.id}">${s.name}</span></td>
-      <td>${s.class}</td>
-      <td>${s.attendance1}</td>
-      <td>${s.oral1}</td>
-      <td>${s.homework1}</td>
-      <td>${s.written1}</td>
-      <td>${s.result1}</td>
-      <td><button class="btn btn-plain edit-btn" data-id="${s.id}">تعديل</button></td>
-    `;
-    studentsTableBody.appendChild(tr);
-  });
+        // ========== دوال إدارة البيانات ==========
+        function loadStudentsForTeacher() {
+            if (!allStudents || allStudents.length === 0) {
+                showError('❌ لم يتم تحميل البيانات بعد');
+                return;
+            }
+            
+            showLoading(true);
+            
+            try {
+                filterStudentsByTeacher();
+                
+                renderStudentsTable();
+                displayStatistics(filteredStudents);
+                studentsCountSpan.textContent = filteredStudents.length;
+                currentTeacherSpan.textContent = currentTeacherId;
+                teacherInfoDiv.classList.remove('hidden');
+                
+                addSearchFunctionality();
+                document.getElementById('searchContainer').classList.remove('hidden');
+                
+                showLoading(false);
+                showSuccess(`✅ تم تحميل ${filteredStudents.length} طالب`);
+                
+            } catch (error) {
+                showLoading(false);
+                showError('خطأ غير متوقع: ' + error.message);
+            }
+        }
 
-  document.querySelectorAll('.student-name').forEach(el => {
-    el.addEventListener('click', () => openEditModal(el.dataset.id));
-  });
-  
-  document.querySelectorAll('.edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => openEditModal(btn.dataset.id));
-  });
-}
+        // ========== مستمعات الأحداث ==========
+        loginBtn.addEventListener('click', async function() {
+            const teacherId = teacherIdInput.value.trim();
+            if (!teacherId) {
+                alert('يرجى إدخال المعرف');
+                return;
+            }
+            
+            if (!validateTeacherId(teacherId)) {
+                alert('المعرف غير صالح. يجب أن يحتوي على أحرف وأرقام فقط ويكون 3 أحرف على الأقل');
+                return;
+            }
+            
+            currentTeacherId = teacherId;
+            loginSection.classList.add('hidden');
+            mainSection.classList.remove('hidden');
+            logoutBtn.classList.remove('hidden');
+            
+            loadStudentsForTeacher();
+        });
 
-function applyFilters() {
-  const q = (searchInput.value || '').trim().toLowerCase();
-  const cls = classFilter.value;
-  
-  filteredStudents = allStudents.filter(s => {
-    const matchQ = !q || 
-      (s.name && s.name.toLowerCase().includes(q)) || 
-      (s.barcode && s.barcode.toLowerCase().includes(q)) || 
-      (s.id && s.id.toString().toLowerCase().includes(q));
-    
-    const matchC = !cls || s.class === cls;
-    return matchQ && matchC;
-  });
-  
-  renderStudentsTable();
-  displayStats();
-}
+        retryBtn.addEventListener('click', function() {
+            loadExcelFromGitHub();
+        });
 
-function displayStats() {
-  const total = filteredStudents.length;
-  const totalAll = allStudents.length;
-  const syncStatusText = GITHUB_CONFIG.token ? 
-    (pendingSyncCount > 0 ? '⏳ في انتظار المزامنة' : '✅ متزامن') : 
-    '⚙️ يحتاج إعداد GitHub';
-  
-  const html = `
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <div style="background:#f8f9fa;padding:12px;border-radius:8px">الطلاب المعروضين: <b>${total}</b></div>
-      <div style="background:#e8f8ee;padding:12px;border-radius:8px">إجمالي الطلاب: <b>${totalAll}</b></div>
-      <div style="background:#e8f4fd;padding:12px;border-radius:8px">${syncStatusText}</div>
-      ${pendingSyncCount > 0 ? `<div style="background:#fff0f0;padding:12px;border-radius:8px">📝 ${pendingSyncCount} تعديل قيد الانتظار</div>` : ''}
-    </div>
-  `;
-  document.getElementById('statsContainer').innerHTML = html;
-}
+        logoutBtn.addEventListener('click', function() {
+            currentTeacherId = '';
+            loginSection.classList.remove('hidden');
+            mainSection.classList.add('hidden');
+            logoutBtn.classList.add('hidden');
+            teacherIdInput.value = '';
+            teacherInfoDiv.classList.add('hidden');
+        });
 
-/* ========== إدارة النماذج ========== */
-function openEditModal(studentId) {
-  if (studentId) {
-    const s = allStudents.find(x => x.id == studentId);
-    if (!s) return alert('لا يوجد هذا الطالب في البيانات');
-    
-    document.getElementById('modalTitle').textContent = 'تعديل درجات الطالب';
-    fields.id.value = s.id || '';
-    fields.name.value = s.name || '';
-    fields.barcode.value = s.barcode || '';
-    fields.class.value = s.class || '';
-    fields.attendance1.value = s.attendance1 || '0';
-    fields.oral1.value = s.oral1 || '0';
-    fields.homework1.value = s.homework1 || '0';
-    fields.written1.value = s.written1 || '0';
-  } else {
-    document.getElementById('modalTitle').textContent = 'إضافة طالب جديد';
-    studentForm.reset();
-    fields.id.value = '';
-    fields.attendance1.value = '0';
-    fields.oral1.value = '0';
-    fields.homework1.value = '0';
-    fields.written1.value = '0';
-  }
-  editModal.style.display = 'flex';
-}
+        exportBtn.addEventListener('click', function() {
+            if (filteredStudents.length === 0) {
+                alert('لا توجد بيانات للتصدير');
+                return;
+            }
+            
+            const jsonData = JSON.stringify(filteredStudents, null, 2);
+            const blob = new Blob([jsonData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `طلاب_${currentTeacherId}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showSuccess('تم تصدير البيانات بنجاح');
+        });
 
-function closeEditModal() {
-  editModal.style.display = 'none';
-}
+        closeModal.addEventListener('click', closeEditModal);
+        cancelEditBtn.addEventListener('click', closeEditModal);
 
-function openGitHubSetup() {
-  githubToken.value = GITHUB_CONFIG.token;
-  githubUsername.value = GITHUB_CONFIG.username;
-  githubRepo.value = GITHUB_CONFIG.repo;
-  githubPath.value = GITHUB_CONFIG.path;
-  githubSetupModal.style.display = 'flex';
-}
+        studentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!currentEditStudent) return;
+            
+            // تحديث بيانات الترم الأول
+            currentEditStudent.attendance1 = document.getElementById('editAttendance1').value;
+            currentEditStudent.oral1 = document.getElementById('editOral1').value;
+            currentEditStudent.homework1 = document.getElementById('editHomework1').value;
+            currentEditStudent.written1 = document.getElementById('editWritten1').value;
+            
+            // تحديث بيانات الترم الثاني
+            currentEditStudent.attendance2 = document.getElementById('editAttendance2').value;
+            currentEditStudent.oral2 = document.getElementById('editOral2').value;
+            currentEditStudent.homework2 = document.getElementById('editHomework2').value;
+            currentEditStudent.written2 = document.getElementById('editWritten2').value;
+            
+            // تحديث بيانات الترم الثالث
+            currentEditStudent.attendance3 = document.getElementById('editAttendance3').value;
+            currentEditStudent.homework3 = document.getElementById('editHomework3').value;
+            currentEditStudent.oral3 = document.getElementById('editOral3').value;
+            currentEditStudent.written3 = document.getElementById('editWritten3').value;
+            
+            // إعادة حساب المجاميع والمحصلات
+            currentEditStudent.total1 = calculateTotal(currentEditStudent, 1);
+            currentEditStudent.result1 = calculateResult(currentEditStudent, 1);
+            currentEditStudent.total2 = calculateTotal(currentEditStudent, 2);
+            currentEditStudent.result2 = calculateResult(currentEditStudent, 2);
+            currentEditStudent.total3 = calculateTotal(currentEditStudent, 3);
+            currentEditStudent.result3 = calculateResult(currentEditStudent, 3);
+            
+            renderStudentsTable();
+            displayStatistics(filteredStudents);
+            closeEditModal();
+            showSuccess('تم تحديث الدرجات بنجاح');
+        });
 
-function closeGitHubSetup() {
-  githubSetupModal.style.display = 'none';
-}
+        function calculateTotal(student, term) {
+            const attendance = parseFloat(student[`attendance${term}`]) || 0;
+            const oral = parseFloat(student[`oral${term}`]) || 0;
+            const homework = parseFloat(student[`homework${term}`]) || 0;
+            const written = parseFloat(student[`written${term}`]) || 0;
+            
+            return (attendance + oral + homework + written).toString();
+        }
 
-function upsertStudentFromForm() {
-  const idVal = (fields.id.value || '').toString().trim();
-  const name = (fields.name.value || '').toString().trim();
-  
-  if (!name || !idVal) {
-    alert('الرجاء ملء الحقول الإجبارية (الاسم و ID)');
-    return;
-  }
-  
-  const studentObj = {
-    id: idVal,
-    barcode: (fields.barcode.value || '').toString().trim(),
-    name: name,
-    class: (fields.class.value || '').toString().trim(),
-    attendance1: fields.attendance1.value || '0',
-    oral1: fields.oral1.value || '0',
-    homework1: fields.homework1.value || '0',
-    written1: fields.written1.value || '0'
-  };
+        function calculateResult(student, term) {
+            const total = parseFloat(calculateTotal(student, term));
+            return (total / 5).toFixed(1); // القسمة على 5 لأن الدرجة من 20
+        }
 
-  // إعادة الحساب
-  const total = (parseFloat(studentObj.attendance1) || 0) + 
-                (parseFloat(studentObj.oral1) || 0) + 
-                (parseFloat(studentObj.homework1) || 0) + 
-                (parseFloat(studentObj.written1) || 0);
-  
-  studentObj.total1 = total.toString();
-  studentObj.result1 = (total / 5).toFixed(1);
+        // ========== التهيئة ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            teacherIdInput.value = 'ameen';
+            loadExcelFromGitHub();
+        });
 
-  // التحقق إذا كان هناك تغيير فعلي
-  const existingStudent = allStudents.find(x => x.id == studentObj.id);
-  let isChanged = true;
-  
-  if (existingStudent) {
-    isChanged = JSON.stringify(existingStudent) !== JSON.stringify(studentObj);
-  }
-
-  // تحديث أو إضافة
-  const idx = allStudents.findIndex(x => x.id == studentObj.id);
-  if (idx >= 0) {
-    allStudents[idx] = studentObj;
-  } else {
-    allStudents.push(studentObj);
-  }
-  
-  // حفظ محلي
-  saveToLocal();
-  
-  // زيادة عداد التعديلات المنتظرة والمزامنة
-  if (isChanged) {
-    incrementPendingSync();
-  }
-  
-  applyFilters();
-  closeEditModal();
-  
-  // رسالة نجاح
-  if (GITHUB_CONFIG.token && isOnline) {
-    alert('✅ تم حفظ التعديلات بنجاح! جاري المزامنة التلقائية مع GitHub...');
-  } else {
-    alert('✅ تم حفظ التعديلات محلياً! سيتم المزامنة عند توفر الإنترنت وإعداد GitHub.');
-  }
-}
-
-/* ========== التحميل والتهيئة ========== */
-async function loadExcelAndInit() {
-  try {
-    const { rows } = await fetchExcelFromRaw();
-    const newStudents = processExcelData(rows);
-    
-    if (newStudents.length === 0) {
-      throw new Error('لم يتم العثور على أي طلاب في الملف');
-    }
-    
-    allStudents = newStudents;
-    saveToLocal();
-    applyFilters();
-    updateClassFilter();
-    
-    setStatus(`تم التحميل بنجاح - ${allStudents.length} طالب`, true);
-    
-  } catch (err) {
-    console.error('خطأ في التحميل من GitHub:', err);
-    
-    const local = loadFromLocal();
-    if (local && local.length > 0) {
-      allStudents = local;
-      applyFilters();
-      updateClassFilter();
-      setStatus(`تم التحميل من الكاش المحلي - ${allStudents.length} طالب`, false);
-    } else {
-      setStatus('فشل التحميل - لا توجد بيانات', false);
-      studentsTableBody.innerHTML = 
-        '<tr><td colspan="10" style="text-align:center;padding:30px;color:#c00">❌ تعذر تحميل البيانات</td></tr>';
-    }
-  }
-}
-
-function loadLocalData() {
-  const local = loadFromLocal();
-  if (local && local.length > 0) {
-    allStudents = local;
-    applyFilters();
-    updateClassFilter();
-    setStatus(`تم التحميل من الكاش المحلي - ${allStudents.length} طالب`, true);
-    return true;
-  }
-  return false;
-}
-
-/* ========== إعداد الأحداث ========== */
-setUrlBtn.addEventListener('click', () => {
-  const v = (rawUrlInput.value || '').trim();
-  if (!v) return alert('أدخل raw URL للملف أولاً.');
-  RAW_URL = v;
-  saveRawUrlToLocal();
-  loadExcelAndInit();
-});
-
-loadDataBtn.addEventListener('click', () => {
-  loadExcelAndInit();
-});
-
-manualSyncBtn.addEventListener('click', () => {
-  if (!GITHUB_CONFIG.token) {
-    alert('الرجاء إعداد GitHub أولاً');
-    openGitHubSetup();
-    return;
-  }
-  syncWithGitHub();
-});
-
-exportExcelBtn.addEventListener('click', () => {
-  const excelBuffer = createExcelBuffer();
-  const blob = new Blob([excelBuffer], {type: 'application/octet-stream'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `students_backup_${new Date().toISOString().slice(0,10)}.xlsx`;
-  a.click();
-  URL.revokeObjectURL(url);
-});
-
-setupGitHubBtn.addEventListener('click', openGitHubSetup);
-
-saveGitHubBtn.addEventListener('click', () => {
-  const token = githubToken.value.trim();
-  const username = githubUsername.value.trim();
-  const repo = githubRepo.value.trim();
-  const path = githubPath.value.trim();
-  
-  if (!token || !username || !repo || !path) {
-    alert('الرجاء ملء جميع الحقول');
-    return;
-  }
-  
-  GITHUB_CONFIG = { token, username, repo, path };
-  saveGitHubConfig();
-  closeGitHubSetup();
-  updateSyncDisplay();
-  displayStats();
-  alert('✅ تم حفظ إعدادات GitHub بنجاح!');
-});
-
-cancelGitHubBtn.addEventListener('click', closeGitHubSetup);
-
-searchInput.addEventListener('input', applyFilters);
-classFilter.addEventListener('change', applyFilters);
-addStudentBtn.addEventListener('click', () => openEditModal(null));
-cancelBtn.addEventListener('click', closeEditModal);
-
-studentForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  upsertStudentFromForm();
-});
-
-/* ========== بدء التشغيل ========== */
-document.addEventListener('DOMContentLoaded', () => {
-  loadRawUrlFromLocal();
-  loadGitHubConfig();
-  loadPendingCount();
-  rawUrlInput.value = RAW_URL;
-  
-  // حاول تحميل البيانات المحلية أولاً
-  if (!loadLocalData()) {
-    // إذا لم توجد بيانات محلية، حاول التحميل من GitHub
-    if (isOnline && RAW_URL) {
-      setTimeout(() => loadExcelAndInit(), 500);
-    }
-  }
-  
-  displayStats();
-});
-
-// مراقبة حالة الاتصال
-window.addEventListener('online', () => {
-  isOnline = true;
-  setStatus('متصل بالإنترنت', true);
-  
-  // محاولة المزامنة عند العودة للاتصال
-  if (pendingSyncCount > 0 && GITHUB_CONFIG.token) {
-    setTimeout(() => syncWithGitHub(), 2000);
-  }
-});
-
-window.addEventListener('offline', () => {
-  isOnline = false;
-  setStatus('غير متصل', false);
-});
-</script>
+        console.log('🚀 التطبيق جاهز - اتصال مباشر مع GitHub');
+    </script>
 </body>
 </html>
