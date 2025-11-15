@@ -403,8 +403,8 @@
             text-align: center;
         }
 
-        /* إضافة أنماط ماسح الباركود */
-        .barcode-scanner-container {
+        /* إضافة أنماط ماسح QR Code */
+        .qr-scanner-container {
             position: relative;
             width: 100%;
             max-width: 500px;
@@ -412,15 +412,48 @@
             text-align: center;
         }
 
-        #barcodeScanner {
+        #qrScanner {
             width: 100%;
             height: 300px;
             border: 2px dashed #3498db;
             border-radius: 10px;
             margin-bottom: 15px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
         }
 
-        .barcode-result {
+        #qrScanner video {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .scanner-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-result {
             margin-top: 15px;
             padding: 10px;
             background: #f8f9fa;
@@ -428,13 +461,13 @@
             border: 1px solid #dee2e6;
         }
 
-        .barcode-result.success {
+        .qr-result.success {
             background: #d4edda;
             border-color: #c3e6cb;
             color: #155724;
         }
 
-        .barcode-result.error {
+        .qr-result.error {
             background: #f8d7da;
             border-color: #f5c6cb;
             color: #721c24;
@@ -482,8 +515,13 @@
                 width: 98%;
             }
 
-            #barcodeScanner {
+            #qrScanner {
                 height: 250px;
+            }
+
+            .scanner-frame {
+                width: 180px;
+                height: 180px;
             }
         }
     </style>
@@ -540,8 +578,8 @@
                 <select id="classNameFilter">
                     <option value="">جميع الشعب</option>
                 </select>
-                <button class="btn" id="barcodeScanBtn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
-                    📷 مسح الباركود
+                <button class="btn" id="qrScanBtn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+                    📷 مسح QR Code
                 </button>
                 <button class="btn" id="showStatsBtn" style="background: linear-gradient(135deg, #27ae60, #229954);">
                     📈 عرض الإحصائيات
@@ -602,17 +640,22 @@
             ⏳ جاري تحميل البيانات...
         </div>
 
-        <!-- نافذة ماسح الباركود -->
-        <div id="barcodeModal" class="modal">
+        <!-- نافذة ماسح QR Code -->
+        <div id="qrModal" class="modal">
             <div class="modal-content">
-                <span class="close-modal" onclick="closeModal('barcodeModal')">&times;</span>
-                <h3>📷 مسح باركود الطالب</h3>
-                <div class="barcode-scanner-container">
-                    <div id="barcodeScanner"></div>
+                <span class="close-modal" onclick="closeModal('qrModal')">&times;</span>
+                <h3>📷 مسح QR Code الطالب</h3>
+                <div class="qr-scanner-container">
+                    <div id="qrScanner">
+                        <span>سيظهر فيديو الكاميرا هنا عند التشغيل</span>
+                    </div>
+                    <div class="scanner-overlay">
+                        <div class="scanner-frame"></div>
+                    </div>
                     <button class="btn" id="startScannerBtn">▶️ تشغيل الماسح</button>
                     <button class="btn btn-warning" id="stopScannerBtn">⏹️ إيقاف الماسح</button>
-                    <div id="barcodeResult" class="barcode-result hidden">
-                        <p id="barcodeResultText"></p>
+                    <div id="qrResult" class="qr-result hidden">
+                        <p id="qrResultText"></p>
                     </div>
                 </div>
             </div>
@@ -721,8 +764,8 @@
         </div>
     </div>
 
-    <!-- إضافة مكتبة QuaggaJS لمسح الباركود -->
-    <script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+    <!-- إضافة مكتبة jsQR لمسح QR Code -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <script>
         // JavaScript Code (محدث ومصحح بالكامل - الإصدار النهائي)
@@ -788,14 +831,14 @@
         const statsASpan = document.getElementById('statsA');
         const statsFSpan = document.getElementById('statsF');
 
-        // عناصر ماسح الباركود
-        const barcodeScanBtn = document.getElementById('barcodeScanBtn');
-        const barcodeModal = document.getElementById('barcodeModal');
-        const barcodeScanner = document.getElementById('barcodeScanner');
+        // عناصر ماسح QR Code
+        const qrScanBtn = document.getElementById('qrScanBtn');
+        const qrModal = document.getElementById('qrModal');
+        const qrScanner = document.getElementById('qrScanner');
         const startScannerBtn = document.getElementById('startScannerBtn');
         const stopScannerBtn = document.getElementById('stopScannerBtn');
-        const barcodeResult = document.getElementById('barcodeResult');
-        const barcodeResultText = document.getElementById('barcodeResultText');
+        const qrResult = document.getElementById('qrResult');
+        const qrResultText = document.getElementById('qrResultText');
 
         // عناصر الـ Modal
         const editStudentId = document.getElementById('editStudentId');
@@ -825,6 +868,8 @@
         let isSyncing = false; 
         let autoSyncInterval; 
         let isScannerActive = false;
+        let videoStream = null;
+        let animationFrame = null;
 
 
         // ========== دوال واجهة المستخدم والأدوات المساعدة ==========
@@ -834,8 +879,8 @@
             if (modal) {
                 modal.style.display = 'none';
                 // إيقاف الماسح عند إغلاق النافذة
-                if (modalId === 'barcodeModal') {
-                    stopBarcodeScanner();
+                if (modalId === 'qrModal') {
+                    stopQRScanner();
                 }
             }
         }
@@ -1438,72 +1483,113 @@
             }
         }
 
-        // ========== دوال ماسح الباركود ==========
+        // ========== دوال ماسح QR Code ==========
 
-        function startBarcodeScanner() {
+        async function startQRScanner() {
             if (isScannerActive) return;
             
             isScannerActive = true;
-            barcodeResult.classList.add('hidden');
+            qrResult.classList.add('hidden');
             
-            Quagga.init({
-                inputStream: {
-                    name: "Live",
-                    type: "LiveStream",
-                    target: barcodeScanner,
-                    constraints: {
-                        width: 480,
-                        height: 320,
-                        facingMode: "environment"
+            try {
+                // طلب إذن الكاميرا
+                videoStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                
+                // إنشاء عنصر فيديو
+                const video = document.createElement('video');
+                video.setAttribute('playsinline', 'true');
+                video.srcObject = videoStream;
+                
+                // مسح محتوى الحاوية وإضافة الفيديو
+                qrScanner.innerHTML = '';
+                qrScanner.appendChild(video);
+                
+                // تشغيل الفيديو
+                await video.play();
+                
+                // إنشاء عنصر canvas لتحليل الإطارات
+                const canvas = document.createElement('canvas');
+                const canvasContext = canvas.getContext('2d');
+                
+                // دورة المسح
+                function scanFrame() {
+                    if (!isScannerActive) return;
+                    
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        
+                        canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+                        
+                        if (code) {
+                            console.log("تم مسح QR Code: ", code.data);
+                            showQRResult(`✅ تم مسح QR Code: ${code.data}`, "success");
+                            searchByQRCode(code.data);
+                            stopQRScanner();
+                            return;
+                        }
                     }
-                },
-                decoder: {
-                    readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader"]
+                    
+                    animationFrame = requestAnimationFrame(scanFrame);
                 }
-            }, function(err) {
-                if (err) {
-                    console.error(err);
-                    showBarcodeResult("❌ فشل في تشغيل الماسح: " + err, "error");
-                    isScannerActive = false;
-                    return;
-                }
-                console.log("تم تهيئة الماسح بنجاح");
-                Quagga.start();
-            });
-
-            Quagga.onDetected(function(result) {
-                if (result && result.codeResult && result.codeResult.code) {
-                    const barcode = result.codeResult.code;
-                    console.log("تم مسح الباركود: ", barcode);
-                    showBarcodeResult(`✅ تم مسح الباركود: ${barcode}`, "success");
-                    searchByBarcode(barcode);
-                    stopBarcodeScanner();
-                }
-            });
-        }
-
-        function stopBarcodeScanner() {
-            if (isScannerActive) {
-                Quagga.stop();
+                
+                // بدء دورة المسح
+                animationFrame = requestAnimationFrame(scanFrame);
+                
+            } catch (error) {
+                console.error("خطأ في تشغيل الماسح: ", error);
+                showQRResult("❌ فشل في تشغيل الماسح: " + error.message, "error");
                 isScannerActive = false;
             }
         }
 
-        function showBarcodeResult(message, type) {
-            barcodeResultText.textContent = message;
-            barcodeResult.className = "barcode-result";
-            barcodeResult.classList.remove("hidden");
-            
-            if (type === "success") {
-                barcodeResult.classList.add("success");
-            } else if (type === "error") {
-                barcodeResult.classList.add("error");
+        function stopQRScanner() {
+            if (isScannerActive) {
+                isScannerActive = false;
+                
+                if (animationFrame) {
+                    cancelAnimationFrame(animationFrame);
+                    animationFrame = null;
+                }
+                
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                    videoStream = null;
+                }
+                
+                qrScanner.innerHTML = '<span>سيظهر فيديو الكاميرا هنا عند التشغيل</span>';
             }
         }
 
-        function searchByBarcode(barcode) {
-            // البحث عن الطالب باستخدام الباركود
-            const student = allStudents.find(s => s.barcode && s.barcode.toString().trim() === barcode.toString().trim());
+        function showQRResult(message, type) {
+            qrResultText.textContent = message;
+            qrResult.className = "qr-result";
+            qrResult.classList.remove("hidden");
+            
+            if (type === "success") {
+                qrResult.classList.add("success");
+            } else if (type === "error") {
+                qrResult.classList.add("error");
+            }
+        }
+
+        function searchByQRCode(qrData) {
+            // البحث عن الطالب باستخدام بيانات QR Code
+            // يمكن أن تكون البيانات هي الـ ID أو الباركود أو الاسم
+            const student = allStudents.find(s => 
+                (s.id && s.id.toString().trim() === qrData.toString().trim()) ||
+                (s.barcode && s.barcode.toString().trim() === qrData.toString().trim()) ||
+                (s.studentName && s.studentName.toString().trim() === qrData.toString().trim())
+            );
             
             if (student) {
                 // إظهار الطالب في الجدول
@@ -1518,10 +1604,10 @@
                 
                 // إغلاق نافذة الماسح بعد تأخير قصير
                 setTimeout(() => {
-                    closeModal('barcodeModal');
+                    closeModal('qrModal');
                 }, 2000);
             } else {
-                showBarcodeResult(`❌ لم يتم العثور على طالب بالباركود: ${barcode}`, "error");
+                showQRResult(`❌ لم يتم العثور على طالب بالبيانات: ${qrData}`, "error");
             }
         }
 
@@ -1566,19 +1652,19 @@
                 });
             }
 
-            // ربط أحداث ماسح الباركود
-            if (barcodeScanBtn) {
-                barcodeScanBtn.addEventListener('click', () => {
-                    barcodeModal.style.display = 'block';
+            // ربط أحداث ماسح QR Code
+            if (qrScanBtn) {
+                qrScanBtn.addEventListener('click', () => {
+                    qrModal.style.display = 'block';
                 });
             }
             
             if (startScannerBtn) {
-                startScannerBtn.addEventListener('click', startBarcodeScanner);
+                startScannerBtn.addEventListener('click', startQRScanner);
             }
             
             if (stopScannerBtn) {
-                stopScannerBtn.addEventListener('click', stopBarcodeScanner);
+                stopScannerBtn.addEventListener('click', stopQRScanner);
             }
 
             syncSheetsBtn.addEventListener('click', () => syncPendingUpdates(false));
