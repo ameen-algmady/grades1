@@ -647,12 +647,11 @@
                 <h3>📷 مسح QR Code الطالب</h3>
                 <div class="qr-scanner-container">
                     <div id="qrScanner">
-                        <span>سيظهر فيديو الكاميرا هنا عند التشغيل</span>
+                        <span>جاري تشغيل الكاميرا...</span>
                     </div>
                     <div class="scanner-overlay">
                         <div class="scanner-frame"></div>
                     </div>
-                    <button class="btn" id="startScannerBtn">▶️ تشغيل الماسح</button>
                     <button class="btn btn-warning" id="stopScannerBtn">⏹️ إيقاف الماسح</button>
                     <div id="qrResult" class="qr-result hidden">
                         <p id="qrResultText"></p>
@@ -835,7 +834,6 @@
         const qrScanBtn = document.getElementById('qrScanBtn');
         const qrModal = document.getElementById('qrModal');
         const qrScanner = document.getElementById('qrScanner');
-        const startScannerBtn = document.getElementById('startScannerBtn');
         const stopScannerBtn = document.getElementById('stopScannerBtn');
         const qrResult = document.getElementById('qrResult');
         const qrResultText = document.getElementById('qrResultText');
@@ -1068,9 +1066,9 @@
             const selectedClass = classNameFilter ? classNameFilter.value : '';
 
             let filteredStudents = allStudents.filter(student => {
-                // البحث بجزء من الاسم (case-insensitive)
+                // البحث بجزء من الاسم (case-insensitive) - تم إصلاح المشكلة
                 const studentName = student.studentName ? student.studentName.toLowerCase() : '';
-                const matchesName = studentName.includes(searchTerm);
+                const matchesName = searchTerm === '' || studentName.includes(searchTerm);
                 
                 // الفلترة بالشعبة
                 const matchesClass = selectedClass === '' || student.className === selectedClass;
@@ -1534,7 +1532,6 @@
                             console.log("تم مسح QR Code: ", code.data);
                             showQRResult(`✅ تم مسح QR Code: ${code.data}`, "success");
                             searchByQRCode(code.data);
-                            stopQRScanner();
                             return;
                         }
                     }
@@ -1566,7 +1563,7 @@
                     videoStream = null;
                 }
                 
-                qrScanner.innerHTML = '<span>سيظهر فيديو الكاميرا هنا عند التشغيل</span>';
+                qrScanner.innerHTML = '<span>جاري تشغيل الكاميرا...</span>';
             }
         }
 
@@ -1602,10 +1599,11 @@
                 
                 showSuccess(`✅ تم العثور على الطالب: ${student.studentName}`);
                 
-                // إغلاق نافذة الماسح بعد تأخير قصير
+                // إغلاق نافذة الماسح وفتح نافذة التعديل مباشرة
                 setTimeout(() => {
                     closeModal('qrModal');
-                }, 2000);
+                    openEditModal(student.id);
+                }, 1000);
             } else {
                 showQRResult(`❌ لم يتم العثور على طالب بالبيانات: ${qrData}`, "error");
             }
@@ -1656,11 +1654,11 @@
             if (qrScanBtn) {
                 qrScanBtn.addEventListener('click', () => {
                     qrModal.style.display = 'block';
+                    // تشغيل الماسح مباشرة عند فتح النافذة
+                    setTimeout(() => {
+                        startQRScanner();
+                    }, 500);
                 });
-            }
-            
-            if (startScannerBtn) {
-                startScannerBtn.addEventListener('click', startQRScanner);
             }
             
             if (stopScannerBtn) {
