@@ -333,11 +333,6 @@
             align-items: center;
         }
 
-        .form-section h4 {
-            color: var(--primary-color);
-            margin: 0;
-        }
-
         .form-group {
             margin-bottom: 15px;
         }
@@ -473,6 +468,129 @@
             color: #721c24;
         }
 
+        /* تحسينات نافذة التعديل للهواتف */
+        .edit-modal-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            padding: 15px 0;
+            border-bottom: 2px solid #ecf0f1;
+            z-index: 10;
+            margin-bottom: 15px;
+        }
+
+        .edit-form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .month-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .month-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .score-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .score-group label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .score-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .total-display {
+            grid-column: 1 / -1;
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 10px;
+            border: 1px solid #3498db;
+        }
+
+        .total-display .label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .total-display .value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .result-display {
+            grid-column: 1 / -1;
+            background: #e8f6f3;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 5px;
+            border: 1px solid #27ae60;
+        }
+
+        .result-display .label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .result-display .value {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .floating-save-btn {
+            position: sticky;
+            bottom: 20px;
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+            margin: 20px auto;
+            display: block;
+            width: 200px;
+            text-align: center;
+        }
+
+        .floating-save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -522,6 +640,26 @@
             .scanner-frame {
                 width: 180px;
                 height: 180px;
+            }
+
+            .scores-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .floating-save-btn {
+                width: 90%;
+                bottom: 10px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .edit-form-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+            
+            .month-section {
+                margin-bottom: 0;
             }
         }
     </style>
@@ -670,95 +808,130 @@
                         <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="totalStudentsCount">0</p>
                     </div>
                     <div class="stat-item">
-                        <h4>A+ (90+)</h4>
-                        <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="statsAplus">0</p>
+                        <h4>أقل من 5</h4>
+                        <p style="font-size: 24px; color: #e74c3c; font-weight: bold;" id="statsLess5">0</p>
                     </div>
                     <div class="stat-item">
-                        <h4>A (80-89)</h4>
-                        <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="statsA">0</p>
+                        <h4>من 5 إلى 10</h4>
+                        <p style="font-size: 24px; color: #f39c12; font-weight: bold;" id="stats5to10">0</p>
                     </div>
                     <div class="stat-item">
-                        <h4>F (أقل من 60)</h4>
-                        <p style="font-size: 24px; color: #e74c3c; font-weight: bold;" id="statsF">0</p>
+                        <h4>من 11 إلى 15</h4>
+                        <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="stats11to15">0</p>
                     </div>
+                    <div class="stat-item">
+                        <h4>من 16 إلى 20</h4>
+                        <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="stats16to20">0</p>
                     </div>
+                </div>
             </div>
         </div>
 
         <div id="editModal" class="modal">
             <div class="modal-content">
                 <span class="close-modal" onclick="closeModal('editModal')">&times;</span>
-                <h3>✏️ تعديل درجات الطالب: <span id="currentStudentName"></span></h3>
-                <div id="studentForm" class="student-form">
-                    <input type="hidden" id="editStudentId">
-
-                    <div class="form-section">
-                        <h4>📘 الشهر الأول</h4>
-                    </div>
-                    <div class="form-group">
-                        <label for="editAttendance1">مواظبة 1:</label>
-                        <input type="number" id="editAttendance1" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editOral1">شفهي 1:</label>
-                        <input type="number" id="editOral1" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editHomework1">واجبات 1:</label>
-                        <input type="number" id="editHomework1" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editWritten1">تحريري 1:</label>
-                        <input type="number" id="editWritten1" min="0" max="40" step="0.1">
-                    </div>
-
-                    <div class="form-section">
-                        <h4>📗 الشهر الثاني</h4>
-                    </div>
-                    <div class="form-group">
-                        <label for="editAttendance2">مواظبة 2:</label>
-                        <input type="number" id="editAttendance2" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editOral2">شفهي 2:</label>
-                        <input type="number" id="editOral2" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editHomework2">واجبات 2:</label>
-                        <input type="number" id="editHomework2" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editWritten2">تحريري 2:</label>
-                        <input type="number" id="editWritten2" min="0" max="40" step="0.1">
+                <div class="edit-modal-header">
+                    <h3>✏️ تعديل درجات الطالب: <span id="currentStudentName"></span></h3>
+                </div>
+                
+                <div class="edit-form-grid">
+                    <!-- الشهر الأول -->
+                    <div class="month-section">
+                        <div class="month-title">📘 الشهر الأول</div>
+                        <div class="scores-grid">
+                            <div class="score-group">
+                                <label for="editAttendance1">مواظبة 1:</label>
+                                <input type="number" id="editAttendance1" min="0" max="5" step="0.1" oninput="calculateMonthTotal(1)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editHomework1">واجبات 1:</label>
+                                <input type="number" id="editHomework1" min="0" max="5" step="0.1" oninput="calculateMonthTotal(1)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editOral1">شفهي 1:</label>
+                                <input type="number" id="editOral1" min="0" max="5" step="0.1" oninput="calculateMonthTotal(1)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editWritten1">تحريري 1:</label>
+                                <input type="number" id="editWritten1" min="0" max="5" step="0.1" oninput="calculateMonthTotal(1)">
+                            </div>
+                            <div class="total-display">
+                                <span class="label">المجموع: </span>
+                                <span class="value" id="totalDisplay1">0</span>
+                            </div>
+                            <div class="result-display">
+                                <span class="label">المحصلة: </span>
+                                <span class="value" id="resultDisplay1">0</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-section">
-                        <h4>📙 الشهر الثالث</h4>
-                    </div>
-                    <div class="form-group">
-                        <label for="editAttendance3">مواظبة 3:</label>
-                        <input type="number" id="editAttendance3" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editHomework3">واجبات 3:</label>
-                        <input type="number" id="editHomework3" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editOral3">شفهي 3:</label>
-                        <input type="number" id="editOral3" min="0" max="20" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label for="editWritten3">تحريري 3:</label>
-                        <input type="number" id="editWritten3" min="0" max="40" step="0.1">
+                    <!-- الشهر الثاني -->
+                    <div class="month-section">
+                        <div class="month-title">📗 الشهر الثاني</div>
+                        <div class="scores-grid">
+                            <div class="score-group">
+                                <label for="editAttendance2">مواظبة 2:</label>
+                                <input type="number" id="editAttendance2" min="0" max="5" step="0.1" oninput="calculateMonthTotal(2)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editHomework2">واجبات 2:</label>
+                                <input type="number" id="editHomework2" min="0" max="5" step="0.1" oninput="calculateMonthTotal(2)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editOral2">شفهي 2:</label>
+                                <input type="number" id="editOral2" min="0" max="5" step="0.1" oninput="calculateMonthTotal(2)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editWritten2">تحريري 2:</label>
+                                <input type="number" id="editWritten2" min="0" max="5" step="0.1" oninput="calculateMonthTotal(2)">
+                            </div>
+                            <div class="total-display">
+                                <span class="label">المجموع: </span>
+                                <span class="value" id="totalDisplay2">0</span>
+                            </div>
+                            <div class="result-display">
+                                <span class="label">المحصلة: </span>
+                                <span class="value" id="resultDisplay2">0</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-section" style="grid-column: 1 / -1; justify-content: center; border-bottom: none;">
-                        <button type="button" id="saveAllEditsBtn" class="btn btn-success" style="margin-left: 20px;">
-                            ✅ حفظ جميع التعديلات
-                        </button>
-                        <button type="button" id="cancelEditBtn" class="btn btn-danger" onclick="closeModal('editModal')">❌ إلغاء</button>
+                    <!-- الشهر الثالث -->
+                    <div class="month-section">
+                        <div class="month-title">📙 الشهر الثالث</div>
+                        <div class="scores-grid">
+                            <div class="score-group">
+                                <label for="editAttendance3">مواظبة 3:</label>
+                                <input type="number" id="editAttendance3" min="0" max="5" step="0.1" oninput="calculateMonthTotal(3)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editHomework3">واجبات 3:</label>
+                                <input type="number" id="editHomework3" min="0" max="5" step="0.1" oninput="calculateMonthTotal(3)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editOral3">شفهي 3:</label>
+                                <input type="number" id="editOral3" min="0" max="5" step="0.1" oninput="calculateMonthTotal(3)">
+                            </div>
+                            <div class="score-group">
+                                <label for="editWritten3">تحريري 3:</label>
+                                <input type="number" id="editWritten3" min="0" max="5" step="0.1" oninput="calculateMonthTotal(3)">
+                            </div>
+                            <div class="total-display">
+                                <span class="label">المجموع: </span>
+                                <span class="value" id="totalDisplay3">0</span>
+                            </div>
+                            <div class="result-display">
+                                <span class="label">المحصلة: </span>
+                                <span class="value" id="resultDisplay3">0</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
+                <button type="button" class="floating-save-btn" onclick="saveAllEdits()">
+                    ✅ حفظ جميع التعديلات
+                </button>
             </div>
         </div>
     </div>
@@ -826,9 +999,10 @@
         const saveLocalManualBtn = document.getElementById('saveLocalManualBtn'); // كان saveLocalBtn
         const statsTeacherIdSpan = document.getElementById('statsTeacherId');
         const totalStudentsCountSpan = document.getElementById('totalStudentsCount');
-        const statsAplusSpan = document.getElementById('statsAplus');
-        const statsASpan = document.getElementById('statsA');
-        const statsFSpan = document.getElementById('statsF');
+        const statsLess5Span = document.getElementById('statsLess5');
+        const stats5to10Span = document.getElementById('stats5to10');
+        const stats11to15Span = document.getElementById('stats11to15');
+        const stats16to20Span = document.getElementById('stats16to20');
 
         // عناصر ماسح QR Code
         const qrScanBtn = document.getElementById('qrScanBtn');
@@ -858,6 +1032,13 @@
         const editOral3 = document.getElementById('editOral3');
         const editWritten3 = document.getElementById('editWritten3');
 
+        // عناصر عرض المجموع والمحصلة
+        const totalDisplay1 = document.getElementById('totalDisplay1');
+        const totalDisplay2 = document.getElementById('totalDisplay2');
+        const totalDisplay3 = document.getElementById('totalDisplay3');
+        const resultDisplay1 = document.getElementById('resultDisplay1');
+        const resultDisplay2 = document.getElementById('resultDisplay2');
+        const resultDisplay3 = document.getElementById('resultDisplay3');
 
         // ========== المتغيرات العامة ==========
         let currentTeacherId = '';
@@ -995,18 +1176,31 @@
 
         function calculateResult(total) {
             const value = parseFloat(total) || 0;
-            if (value >= 90) return 'A+';
-            if (value >= 80) return 'A';
-            if (value >= 70) return 'B';
-            if (value >= 60) return 'C';
-            return 'F';
+            // المحصلة = المجموع ÷ 5
+            const result = (value / 5).toFixed(1);
+            return result;
         }
 
         function getResultClass(result) {
-            if (result === 'A+' || result === 'A') return 'result-cell result-excellent';
-            if (result === 'B') return 'result-cell result-good';
-            if (result === 'C') return 'result-cell result-average';
+            const value = parseFloat(result) || 0;
+            if (value >= 16) return 'result-cell result-excellent';
+            if (value >= 11) return 'result-cell result-good';
+            if (value >= 5) return 'result-cell result-average';
             return 'result-cell result-poor';
+        }
+
+        // دالة حساب المجموع والمحصلة للشهر
+        function calculateMonthTotal(month) {
+            const att = parseFloat(document.getElementById(`editAttendance${month}`).value) || 0;
+            const oral = parseFloat(document.getElementById(`editOral${month}`).value) || 0;
+            const hw = parseFloat(document.getElementById(`editHomework${month}`).value) || 0;
+            const written = parseFloat(document.getElementById(`editWritten${month}`).value) || 0;
+            
+            const total = att + oral + hw + written;
+            const result = calculateResult(total);
+            
+            document.getElementById(`totalDisplay${month}`).textContent = total.toFixed(1);
+            document.getElementById(`resultDisplay${month}`).textContent = result;
         }
 
         // دالة عرض الجدول 
@@ -1106,6 +1300,7 @@
             document.getElementById('currentStudentName').textContent = student.studentName;
             document.getElementById('editStudentId').value = student.id;
 
+            // تعبئة القيم
             editAttendance1.value = formatGrade(student.attendance1);
             editOral1.value = formatGrade(student.oral1);
             editHomework1.value = formatGrade(student.homework1);
@@ -1121,11 +1316,16 @@
             editOral3.value = formatGrade(student.oral3);
             editWritten3.value = formatGrade(student.written3);
 
+            // حساب وعرض المجاميع والمحصلات
+            calculateMonthTotal(1);
+            calculateMonthTotal(2);
+            calculateMonthTotal(3);
+
             document.getElementById('editModal').style.display = 'block'; 
         }
 
 
-        // دالة حساب وعرض الإحصاءات (مُحسَّنة ومصححة لأسماء الـ IDs)
+        // دالة حساب وعرض الإحصاءات (مُحسَّنة ومصححة)
         function showStatistics() {
             // نستخدم الطلاب المفلترين حالياً في الجدول، وليس كل الطلاب
             const currentStudents = [...studentsTableBody.querySelectorAll('tr')].map(row => {
@@ -1147,46 +1347,61 @@
                 return;
             }
 
-            let stats = { Aplus: 0, A: 0, B: 0, C: 0, F: 0, total: currentStudents.length };
+            let stats = { 
+                less5: 0, 
+                from5to10: 0, 
+                from11to15: 0, 
+                from16to20: 0, 
+                total: currentStudents.length 
+            };
             
             currentStudents.forEach(student => {
-                // نحسب الإحصاءات بناءً على مجموع الشهر الأول (كمثال)
-                const total1 = parseFloat(calculateTotal(student, 1)) || 0; 
+                // نحسب الإحصاءات بناءً على المحصلة النهائية (متوسط المحصلات الثلاث)
+                const result1 = parseFloat(calculateResult(calculateTotal(student, 1))) || 0;
+                const result2 = parseFloat(calculateResult(calculateTotal(student, 2))) || 0;
+                const result3 = parseFloat(calculateResult(calculateTotal(student, 3))) || 0;
                 
-                if (total1 >= 90) {
-                    stats.Aplus++;
-                } else if (total1 >= 80) {
-                    stats.A++;
-                } else if (total1 >= 70) {
-                    stats.B++;
-                } else if (total1 >= 60) {
-                    stats.C++;
+                const averageResult = (result1 + result2 + result3) / 3;
+                
+                if (averageResult < 5) {
+                    stats.less5++;
+                } else if (averageResult <= 10) {
+                    stats.from5to10++;
+                } else if (averageResult <= 15) {
+                    stats.from11to15++;
                 } else {
-                    stats.F++;
+                    stats.from16to20++;
                 }
             });
 
-            // ملء النموذج وعرضه (تم توحيد أسماء الـ IDs)
+            // ملء النموذج وعرضه
             if (statsTeacherIdSpan) statsTeacherIdSpan.textContent = currentTeacherId;
             if (totalStudentsCountSpan) totalStudentsCountSpan.textContent = stats.total;
-            if (statsAplusSpan) statsAplusSpan.textContent = stats.Aplus;
-            if (statsASpan) statsASpan.textContent = stats.A;
-            if (statsFSpan) statsFSpan.textContent = stats.F;
+            if (statsLess5Span) statsLess5Span.textContent = stats.less5;
+            if (stats5to10Span) stats5to10Span.textContent = stats.from5to10;
+            if (stats11to15Span) stats11to15Span.textContent = stats.from11to15;
+            if (stats16to20Span) stats16to20Span.textContent = stats.from16to20;
             
             statsModal.style.display = 'block';
         }
 
 
-        // دالة حفظ البيانات المحلية (تم تصحيحها للربط بزر saveLocalManualBtn)
+        // دالة حفظ البيانات المحلية (تم إصلاحها)
         function saveDataToLocalStorage() {
             try {
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allStudents));
+                const dataToSave = {
+                    students: allStudents,
+                    teacherId: currentTeacherId,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
                 return true;
             } catch (error) {
                 showError('فشل في حفظ البيانات المحلية: ' + error.message);
                 return false;
             }
         }
+
         function loadPendingUpdates() {
             try {
                 const data = localStorage.getItem(PENDING_UPDATES_KEY);
@@ -1421,11 +1636,12 @@
             let success = false;
             
             if (useLocal) {
-                const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (localData) {
-                    try {
-                        const loadedStudents = JSON.parse(localData);
-                        const filteredStudents = loadedStudents.filter(s => s.teacherId === teacherId);
+                try {
+                    const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
+                    if (localData) {
+                        const parsedData = JSON.parse(localData);
+                        const filteredStudents = parsedData.students ? 
+                            parsedData.students.filter(s => s.teacherId === teacherId) : [];
 
                         if (filteredStudents.length > 0) {
                             allStudents = filteredStudents;
@@ -1439,11 +1655,11 @@
                         } else {
                             alert('لا توجد بيانات سابقة محفوظة محلياً لهذا المعرف.');
                         }
-                    } catch (error) {
-                        alert('خطأ في قراءة البيانات المحلية: ' + error.message);
+                    } else {
+                        alert('لا توجد بيانات سابقة مخزنة محلياً على الإطلاق.');
                     }
-                } else {
-                    alert('لا توجد بيانات سابقة مخزنة محلياً على الإطلاق.');
+                } catch (error) {
+                    alert('خطأ في قراءة البيانات المحلية: ' + error.message);
                 }
 
             } else {
@@ -1646,6 +1862,8 @@
                 saveLocalManualBtn.addEventListener('click', () => {
                     if (saveDataToLocalStorage()) {
                         showSuccess('✅ تم حفظ البيانات الحالية للمعلم بنجاح في الذاكرة المحلية.');
+                    } else {
+                        showError('❌ فشل في حفظ البيانات المحلية.');
                     }
                 });
             }
@@ -1667,9 +1885,6 @@
 
             syncSheetsBtn.addEventListener('click', () => syncPendingUpdates(false));
             
-            if (saveAllEditsBtn) {
-                saveAllEditsBtn.addEventListener('click', saveAllEdits);
-            }
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 loginSection.classList.remove('hidden');
                 mainSection.classList.add('hidden');
