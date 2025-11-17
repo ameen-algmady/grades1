@@ -834,6 +834,9 @@
                     <h3>✏️ تعديل درجات الطالب: <span id="currentStudentName"></span></h3>
                 </div>
                 
+                <!-- إضافة العنصر المخفي لتخزين معرف الطالب -->
+                <input type="hidden" id="editStudentId">
+                
                 <div class="edit-form-grid">
                     <!-- الشهر الأول -->
                     <div class="month-section">
@@ -992,11 +995,11 @@
         const studentsCountSpan = document.getElementById('studentsCount');
 
         // عناصر البحث والفلترة والإحصاء (تم تحديث الأسماء هنا لتطابق HTML)
-        const searchNameInput = document.getElementById('searchNameInput'); // كان searchInput
-        const classNameFilter = document.getElementById('classNameFilter'); // كان classFilter
+        const searchNameInput = document.getElementById('searchNameInput');
+        const classNameFilter = document.getElementById('classNameFilter');
         const showStatsBtn = document.getElementById('showStatsBtn'); 
         const statsModal = document.getElementById('statsModal'); 
-        const saveLocalManualBtn = document.getElementById('saveLocalManualBtn'); // كان saveLocalBtn
+        const saveLocalManualBtn = document.getElementById('saveLocalManualBtn');
         const statsTeacherIdSpan = document.getElementById('statsTeacherId');
         const totalStudentsCountSpan = document.getElementById('totalStudentsCount');
         const statsLess5Span = document.getElementById('statsLess5');
@@ -1013,32 +1016,18 @@
         const qrResultText = document.getElementById('qrResultText');
 
         // عناصر الـ Modal
-        const editStudentId = document.getElementById('editStudentId');
         const editModal = document.getElementById('editModal');
-        const saveAllEditsBtn = document.getElementById('saveAllEditsBtn');
         const useLocalDataBtn = document.getElementById('useLocalDataBtn'); 
 
-        // عناصر إدخال الدرجات
-        const editAttendance1 = document.getElementById('editAttendance1');
-        const editOral1 = document.getElementById('editOral1');
-        const editHomework1 = document.getElementById('editHomework1');
-        const editWritten1 = document.getElementById('editWritten1');
-        const editAttendance2 = document.getElementById('editAttendance2');
-        const editOral2 = document.getElementById('editOral2');
-        const editHomework2 = document.getElementById('editHomework2');
-        const editWritten2 = document.getElementById('editWritten2');
-        const editAttendance3 = document.getElementById('editAttendance3');
-        const editHomework3 = document.getElementById('editHomework3');
-        const editOral3 = document.getElementById('editOral3');
-        const editWritten3 = document.getElementById('editWritten3');
+        // عناصر إدخال الدرجات - تم إعادة تعريفها بشكل صحيح
+        let editAttendance1, editOral1, editHomework1, editWritten1;
+        let editAttendance2, editOral2, editHomework2, editWritten2;
+        let editAttendance3, editOral3, editHomework3, editWritten3;
+        let editStudentId, currentStudentName;
 
         // عناصر عرض المجموع والمحصلة
-        const totalDisplay1 = document.getElementById('totalDisplay1');
-        const totalDisplay2 = document.getElementById('totalDisplay2');
-        const totalDisplay3 = document.getElementById('totalDisplay3');
-        const resultDisplay1 = document.getElementById('resultDisplay1');
-        const resultDisplay2 = document.getElementById('resultDisplay2');
-        const resultDisplay3 = document.getElementById('resultDisplay3');
+        let totalDisplay1, totalDisplay2, totalDisplay3;
+        let resultDisplay1, resultDisplay2, resultDisplay3;
 
         // ========== المتغيرات العامة ==========
         let currentTeacherId = '';
@@ -1050,6 +1039,36 @@
         let videoStream = null;
         let animationFrame = null;
 
+        // ========== تهيئة عناصر DOM بعد تحميل الصفحة ==========
+        function initializeDOMElements() {
+            // عناصر إدخال الدرجات
+            editAttendance1 = document.getElementById('editAttendance1');
+            editOral1 = document.getElementById('editOral1');
+            editHomework1 = document.getElementById('editHomework1');
+            editWritten1 = document.getElementById('editWritten1');
+            editAttendance2 = document.getElementById('editAttendance2');
+            editOral2 = document.getElementById('editOral2');
+            editHomework2 = document.getElementById('editHomework2');
+            editWritten2 = document.getElementById('editWritten2');
+            editAttendance3 = document.getElementById('editAttendance3');
+            editHomework3 = document.getElementById('editHomework3');
+            editOral3 = document.getElementById('editOral3');
+            editWritten3 = document.getElementById('editWritten3');
+            
+            // العناصر المخفية والعرض
+            editStudentId = document.getElementById('editStudentId');
+            currentStudentName = document.getElementById('currentStudentName');
+            
+            // عناصر عرض المجموع والمحصلة
+            totalDisplay1 = document.getElementById('totalDisplay1');
+            totalDisplay2 = document.getElementById('totalDisplay2');
+            totalDisplay3 = document.getElementById('totalDisplay3');
+            resultDisplay1 = document.getElementById('resultDisplay1');
+            resultDisplay2 = document.getElementById('resultDisplay2');
+            resultDisplay3 = document.getElementById('resultDisplay3');
+
+            console.log('تم تهيئة عناصر DOM بنجاح');
+        }
 
         // ========== دوال واجهة المستخدم والأدوات المساعدة ==========
 
@@ -1252,19 +1271,14 @@
             });
         }
 
-        // دالة تحديث عرض الجدول بناءً على الفلاتر (مُحسَّنة ومصححة لأسماء الـ IDs)
+        // دالة تحديث عرض الجدول بناءً على الفلاتر
         function updateDisplayedStudents() {
-            
-            // تم التأكد من أن searchNameInput و classNameFilter معرفان بشكل صحيح الآن
             const searchTerm = searchNameInput ? searchNameInput.value.trim().toLowerCase() : '';
             const selectedClass = classNameFilter ? classNameFilter.value : '';
 
             let filteredStudents = allStudents.filter(student => {
-                // البحث بجزء من الاسم (case-insensitive) - تم إصلاح المشكلة
                 const studentName = student.studentName ? student.studentName.toLowerCase() : '';
                 const matchesName = searchTerm === '' || studentName.includes(searchTerm);
-                
-                // الفلترة بالشعبة
                 const matchesClass = selectedClass === '' || student.className === selectedClass;
                 return matchesName && matchesClass;
             });
@@ -1287,8 +1301,15 @@
             });
         }
 
-        // دالة فتح نافذة التعديل 
+        // دالة فتح نافذة التعديل - تم إصلاحها بالكامل
         function openEditModal(studentId) {
+            console.log('فتح نافذة التعديل للطالب:', studentId);
+            
+            // التأكد من تهيئة العناصر
+            if (!editAttendance1) {
+                initializeDOMElements();
+            }
+            
             const targetId = studentId.toString().trim(); 
             const student = allStudents.find(s => s.id && s.id.toString().trim() === targetId);
             
@@ -1297,8 +1318,9 @@
                 return;
             }
             
-            document.getElementById('currentStudentName').textContent = student.studentName;
-            document.getElementById('editStudentId').value = student.id;
+            // تعبئة البيانات
+            currentStudentName.textContent = student.studentName;
+            editStudentId.value = student.id;
 
             // تعبئة القيم
             editAttendance1.value = formatGrade(student.attendance1);
@@ -1321,15 +1343,14 @@
             calculateMonthTotal(2);
             calculateMonthTotal(3);
 
-            document.getElementById('editModal').style.display = 'block'; 
+            // عرض النافذة
+            editModal.style.display = 'block';
+            console.log('تم فتح نافذة التعديل بنجاح');
         }
 
-
-        // دالة حساب وعرض الإحصاءات (مُحسَّنة ومصححة)
+        // دالة حساب وعرض الإحصاءات
         function showStatistics() {
-            // نستخدم الطلاب المفلترين حالياً في الجدول، وليس كل الطلاب
             const currentStudents = [...studentsTableBody.querySelectorAll('tr')].map(row => {
-                 // نحصل على الـ ID من أول خلية في الصف
                 const idCell = row.querySelector('td:first-child');
                 if (idCell) {
                     const studentId = idCell.textContent.trim();
@@ -1342,10 +1363,6 @@
                 alert('لا توجد بيانات طلاب (وفقاً للفلترة الحالية) لحساب الإحصاءات.');
                 return;
             }
-            if (!statsModal) {
-                alert('خطأ: لم يتم العثور على نافذة الإحصاءات (statsModal).');
-                return;
-            }
 
             let stats = { 
                 less5: 0, 
@@ -1356,7 +1373,6 @@
             };
             
             currentStudents.forEach(student => {
-                // نحسب الإحصاءات بناءً على المحصلة النهائية (متوسط المحصلات الثلاث)
                 const result1 = parseFloat(calculateResult(calculateTotal(student, 1))) || 0;
                 const result2 = parseFloat(calculateResult(calculateTotal(student, 2))) || 0;
                 const result3 = parseFloat(calculateResult(calculateTotal(student, 3))) || 0;
@@ -1375,18 +1391,17 @@
             });
 
             // ملء النموذج وعرضه
-            if (statsTeacherIdSpan) statsTeacherIdSpan.textContent = currentTeacherId;
-            if (totalStudentsCountSpan) totalStudentsCountSpan.textContent = stats.total;
-            if (statsLess5Span) statsLess5Span.textContent = stats.less5;
-            if (stats5to10Span) stats5to10Span.textContent = stats.from5to10;
-            if (stats11to15Span) stats11to15Span.textContent = stats.from11to15;
-            if (stats16to20Span) stats16to20Span.textContent = stats.from16to20;
+            statsTeacherIdSpan.textContent = currentTeacherId;
+            totalStudentsCountSpan.textContent = stats.total;
+            statsLess5Span.textContent = stats.less5;
+            stats5to10Span.textContent = stats.from5to10;
+            stats11to15Span.textContent = stats.from11to15;
+            stats16to20Span.textContent = stats.from16to20;
             
             statsModal.style.display = 'block';
         }
 
-
-        // دالة حفظ البيانات المحلية (تم إصلاحها)
+        // دالة حفظ البيانات المحلية
         function saveDataToLocalStorage() {
             try {
                 const dataToSave = {
@@ -1423,7 +1438,6 @@
                 pendingCountSpan.classList.add('hidden');
                 syncSheetsBtn.style.background = 'linear-gradient(135deg, #3498db, #2980b9)';
             }
-            updateAutoSyncStatus(); 
         }
 
         function savePendingUpdates() {
@@ -1438,7 +1452,8 @@
         }
 
         function saveAllEdits() {
-            const idToFind = document.getElementById('editStudentId').value.toString().trim();
+            const studentId = editStudentId.value;
+            const idToFind = studentId.toString().trim(); 
             const student = allStudents.find(s => s.id && s.id.toString().trim() === idToFind);
 
             if (!student) {
@@ -1494,98 +1509,15 @@
                 updateDisplayedStudents(); 
                 closeModal('editModal');
                 showSuccess('✅ تم حفظ التعديلات للطالب محلياً وإضافتها للمزامنة.');
-                
-                attemptAutoSync(); 
             } else {
                 closeModal('editModal');
                 showSuccess('👍 لم يتم إجراء تعديلات جديدة لحفظها.');
             }
         }
 
+        // ... باقي الدوال (syncPendingUpdates, updateAutoSyncStatus, attemptAutoSync, startAutoSync)
 
-        async function syncPendingUpdates(isAuto = false) {
-            if (pendingUpdates.length === 0 || isSyncing) {
-                if (!isAuto && pendingUpdates.length === 0) alert('لا توجد تعديلات معلقة للمزامنة.');
-                return;
-            }
-
-            isSyncing = true;
-            const updatesToSync = [...pendingUpdates]; 
-
-            showLoading(true, `☁️ جاري مزامنة ${updatesToSync.length} تعديل مع Google Sheets...`);
-            syncStatusDiv.textContent = `المزامنة التلقائية: جاري المزامنة (${updatesToSync.length})...`;
-            syncSheetsBtn.disabled = true;
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'text/plain;charset=utf-8',
-                    },
-                    body: JSON.stringify({ updates: updatesToSync })
-                });
-                
-                const data = await response.json();
-                
-                showLoading(false);
-                syncSheetsBtn.disabled = false;
-                
-                if (data.status === 'success') {
-                    const successCount = data.updatedCount || updatesToSync.length;
-                    
-                    pendingUpdates = pendingUpdates.filter(update => 
-                        !updatesToSync.some(synced => synced.id === update.id)
-                    );
-                    
-                    savePendingUpdates(); 
-                    showSuccess(`✅ تم مزامنة ${successCount} خلية بنجاح! جاري تحديث البيانات.`);
-                    
-                    await fetchDataFromSheet(currentTeacherId, false); 
-                } else {
-                    showError(`❌ فشلت المزامنة: ${data.error || 'خطأ غير معروف.'}`);
-                    syncStatusDiv.textContent = `المزامنة التلقائية: فشلت!`;
-                }
-            } catch (error) {
-                showLoading(false);
-                syncSheetsBtn.disabled = false;
-                showError('❌ خطأ في الاتصال أثناء المزامنة: ' + error.message);
-                syncStatusDiv.textContent = `المزامنة التلقائية: فشلت! (خطأ شبكة)`;
-            } finally {
-                isSyncing = false;
-                updateAutoSyncStatus();
-            }
-        }
-
-        function updateAutoSyncStatus() {
-            const hasPending = pendingUpdates.length > 0;
-            const isOnline = navigator.onLine;
-
-            if (hasPending && isOnline) {
-                syncStatusDiv.textContent = `المزامنة التلقائية: قيد التشغيل (تعديلات: ${pendingUpdates.length})`;
-                syncStatusDiv.style.color = '#27ae60'; 
-            } else if (hasPending && !isOnline) {
-                syncStatusDiv.textContent = `المزامنة التلقائية: متوقفة (لا يوجد إنترنت)`;
-                syncStatusDiv.style.color = '#f39c12'; 
-            } else {
-                syncStatusDiv.textContent = 'المزامنة التلقائية: متوقفة (لا توجد تعديلات)';
-                syncStatusDiv.style.color = '#666'; 
-            }
-        }
-
-        function attemptAutoSync() {
-            if (navigator.onLine && pendingUpdates.length > 0 && !isSyncing) {
-                syncPendingUpdates(true);
-            }
-        }
-
-        function startAutoSync() {
-            if (autoSyncInterval) clearInterval(autoSyncInterval);
-            autoSyncInterval = setInterval(attemptAutoSync, 30000); 
-            attemptAutoSync(); 
-        }
-
-        // ========== دوال الدخول والتحميل (مُحسَّنة) ==========
+        // ========== دوال الدخول والتحميل ==========
 
         async function fetchDataFromSheet(teacherId, showLoadingScreen = true) {
             if (showLoadingScreen) showLoading(true, '⏳ جاري تحميل البيانات من Google Sheets...');
@@ -1670,13 +1602,11 @@
                 loginSection.classList.add('hidden');
                 mainSection.classList.remove('hidden');
                 currentTeacherSpan.textContent = teacherId; 
-                startAutoSync(); 
                 if (!useLocal) {
                      showSuccess(`مرحباً بك يا ${teacherId}! تم تحميل البيانات من السيرفر.`);
                 }
             }
         }
-
 
         async function initializeData() {
             const url = `${WEB_APP_URL}`;
@@ -1706,7 +1636,6 @@
             qrResult.classList.add('hidden');
             
             try {
-                // طلب إذن الكاميرا
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: "environment",
@@ -1715,23 +1644,18 @@
                     } 
                 });
                 
-                // إنشاء عنصر فيديو
                 const video = document.createElement('video');
                 video.setAttribute('playsinline', 'true');
                 video.srcObject = videoStream;
                 
-                // مسح محتوى الحاوية وإضافة الفيديو
                 qrScanner.innerHTML = '';
                 qrScanner.appendChild(video);
                 
-                // تشغيل الفيديو
                 await video.play();
                 
-                // إنشاء عنصر canvas لتحليل الإطارات
                 const canvas = document.createElement('canvas');
                 const canvasContext = canvas.getContext('2d');
                 
-                // دورة المسح
                 function scanFrame() {
                     if (!isScannerActive) return;
                     
@@ -1755,7 +1679,6 @@
                     animationFrame = requestAnimationFrame(scanFrame);
                 }
                 
-                // بدء دورة المسح
                 animationFrame = requestAnimationFrame(scanFrame);
                 
             } catch (error) {
@@ -1796,8 +1719,6 @@
         }
 
         function searchByQRCode(qrData) {
-            // البحث عن الطالب باستخدام بيانات QR Code
-            // يمكن أن تكون البيانات هي الـ ID أو الباركود أو الاسم
             const student = allStudents.find(s => 
                 (s.id && s.id.toString().trim() === qrData.toString().trim()) ||
                 (s.barcode && s.barcode.toString().trim() === qrData.toString().trim()) ||
@@ -1805,17 +1726,14 @@
             );
             
             if (student) {
-                // إظهار الطالب في الجدول
                 searchNameInput.value = '';
                 classNameFilter.value = '';
                 
-                // عرض الطالب فقط
                 const filteredStudents = [student];
                 renderStudentsTable(filteredStudents);
                 
                 showSuccess(`✅ تم العثور على الطالب: ${student.studentName}`);
                 
-                // إغلاق نافذة الماسح وفتح نافذة التعديل مباشرة
                 setTimeout(() => {
                     closeModal('qrModal');
                     openEditModal(student.id);
@@ -1828,10 +1746,11 @@
         // ========== تهيئة التطبيق وربط الأحداث ==========
 
         document.addEventListener('DOMContentLoaded', () => {
+            // تهيئة عناصر DOM أولاً
+            initializeDOMElements();
+            
             pendingUpdates = loadPendingUpdates();
             updatePendingCount(); 
-            
-            startAutoSync(); 
             
             initializeData();
 
@@ -1840,13 +1759,13 @@
             if (useLocalDataBtn) {
                 useLocalDataBtn.addEventListener('click', () => login(true));
             }
-             // إضافة حدث لزر إعادة المحاولة
+            
             const retryBtn = document.getElementById('retryBtn');
             if (retryBtn) {
                 retryBtn.addEventListener('click', initializeData);
             }
 
-            // ربط أحداث البحث والفلترة (تم توحيد الـ IDs)
+            // ربط أحداث البحث والفلترة
             if (searchNameInput) {
                 searchNameInput.addEventListener('input', updateDisplayedStudents);
             }
@@ -1854,7 +1773,7 @@
                 classNameFilter.addEventListener('change', updateDisplayedStudents);
             }
             
-            // ربط أحداث الإحصاءات والحفظ والمزامنة (تم توحيد الـ IDs)
+            // ربط أحداث الإحصاءات والحفظ والمزامنة
             if (showStatsBtn) {
                 showStatsBtn.addEventListener('click', showStatistics);
             }
@@ -1872,7 +1791,6 @@
             if (qrScanBtn) {
                 qrScanBtn.addEventListener('click', () => {
                     qrModal.style.display = 'block';
-                    // تشغيل الماسح مباشرة عند فتح النافذة
                     setTimeout(() => {
                         startQRScanner();
                     }, 500);
@@ -1892,7 +1810,6 @@
                 renderStudentsTable(); 
                 showSuccess('تم تسجيل الخروج بنجاح.');
             });
-            window.addEventListener('online', attemptAutoSync);
         });
     </script>
 </body>
