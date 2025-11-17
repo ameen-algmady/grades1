@@ -567,28 +567,30 @@
             color: #27ae60;
         }
 
-        .floating-save-btn {
+        /* زر الحفظ في الأعلى */
+        .top-save-btn {
             position: sticky;
-            bottom: 20px;
+            top: 80px;
             background: linear-gradient(135deg, #27ae60, #229954);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 12px 25px;
             border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            z-index: 100;
-            margin: 20px auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 20;
+            margin: 10px auto;
             display: block;
-            width: 200px;
+            width: 220px;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
-        .floating-save-btn:hover {
+        .top-save-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
         }
 
         @media (max-width: 768px) {
@@ -646,9 +648,11 @@
                 grid-template-columns: 1fr;
             }
 
-            .floating-save-btn {
+            .top-save-btn {
                 width: 90%;
-                bottom: 10px;
+                top: 60px;
+                padding: 10px 20px;
+                font-size: 14px;
             }
         }
 
@@ -832,6 +836,10 @@
                 <span class="close-modal" onclick="closeModal('editModal')">&times;</span>
                 <div class="edit-modal-header">
                     <h3>✏️ تعديل درجات الطالب: <span id="currentStudentName"></span></h3>
+                    <!-- زر الحفظ في الأعلى -->
+                    <button type="button" class="top-save-btn" onclick="saveAllEdits()">
+                        ✅ حفظ جميع التعديلات
+                    </button>
                 </div>
                 
                 <!-- إضافة العنصر المخفي لتخزين معرف الطالب -->
@@ -931,10 +939,6 @@
                         </div>
                     </div>
                 </div>
-
-                <button type="button" class="floating-save-btn" onclick="saveAllEdits()">
-                    ✅ حفظ جميع التعديلات
-                </button>
             </div>
         </div>
     </div>
@@ -1434,9 +1438,13 @@
             if (count > 0) {
                 pendingCountSpan.classList.remove('hidden');
                 syncSheetsBtn.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+                syncStatusDiv.textContent = `المزامنة التلقائية: جاهزة (${count} تعديل)`;
+                syncStatusDiv.style.color = '#f39c12';
             } else {
                 pendingCountSpan.classList.add('hidden');
                 syncSheetsBtn.style.background = 'linear-gradient(135deg, #3498db, #2980b9)';
+                syncStatusDiv.textContent = 'المزامنة التلقائية: متوقفة';
+                syncStatusDiv.style.color = '#666';
             }
         }
 
@@ -1509,13 +1517,102 @@
                 updateDisplayedStudents(); 
                 closeModal('editModal');
                 showSuccess('✅ تم حفظ التعديلات للطالب محلياً وإضافتها للمزامنة.');
+                
+                // محاولة المزامنة التلقائية
+                attemptAutoSync();
             } else {
                 closeModal('editModal');
                 showSuccess('👍 لم يتم إجراء تعديلات جديدة لحفظها.');
             }
         }
 
-        // ... باقي الدوال (syncPendingUpdates, updateAutoSyncStatus, attemptAutoSync, startAutoSync)
+        async function syncPendingUpdates(isAuto = false) {
+            if (pendingUpdates.length === 0 || isSyncing) {
+                if (!isAuto && pendingUpdates.length === 0) {
+                    showSuccess('لا توجد تعديلات معلقة للمزامنة.');
+                }
+                return;
+            }
+
+            isSyncing = true;
+            const updatesToSync = [...pendingUpdates]; 
+
+            showLoading(true, `☁️ جاري مزامنة ${updatesToSync.length} تعديل مع Google Sheets...`);
+            syncStatusDiv.textContent = `المزامنة التلقائية: جاري المزامنة (${updatesToSync.length})...`;
+            syncSheetsBtn.disabled = true;
+
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'text/plain;charset=utf-8',
+                    },
+                    body: JSON.stringify({ updates: updatesToSync })
+                });
+                
+                const data = await response.json();
+                
+                showLoading(false);
+                syncSheetsBtn.disabled = false;
+                
+                if (data.status === 'success') {
+                    const successCount = data.updatedCount || updatesToSync.length;
+                    
+                    pendingUpdates = pendingUpdates.filter(update => 
+                        !updatesToSync.some(synced => synced.id === update.id)
+                    );
+                    
+                    savePendingUpdates(); 
+                    showSuccess(`✅ تم مزامنة ${successCount} خلية بنجاح!`);
+                    
+                    // تحديث البيانات من السيرفر بعد المزامنة الناجحة
+                    await fetchDataFromSheet(currentTeacherId, false);
+                } else {
+                    showError(`❌ فشلت المزامنة: ${data.error || 'خطأ غير معروف.'}`);
+                    syncStatusDiv.textContent = `المزامنة التلقائية: فشلت!`;
+                }
+            } catch (error) {
+                showLoading(false);
+                syncSheetsBtn.disabled = false;
+                showError('❌ خطأ في الاتصال أثناء المزامنة: ' + error.message);
+                syncStatusDiv.textContent = `المزامنة التلقائية: فشلت! (خطأ شبكة)`;
+            } finally {
+                isSyncing = false;
+                updateAutoSyncStatus();
+            }
+        }
+
+        function updateAutoSyncStatus() {
+            const hasPending = pendingUpdates.length > 0;
+            const isOnline = navigator.onLine;
+
+            if (hasPending && isOnline) {
+                syncStatusDiv.textContent = `المزامنة التلقائية: قيد التشغيل (تعديلات: ${pendingUpdates.length})`;
+                syncStatusDiv.style.color = '#27ae60'; 
+            } else if (hasPending && !isOnline) {
+                syncStatusDiv.textContent = `المزامنة التلقائية: متوقفة (لا يوجد إنترنت)`;
+                syncStatusDiv.style.color = '#f39c12'; 
+            } else {
+                syncStatusDiv.textContent = 'المزامنة التلقائية: متوقفة';
+                syncStatusDiv.style.color = '#666'; 
+            }
+        }
+
+        function attemptAutoSync() {
+            if (navigator.onLine && pendingUpdates.length > 0 && !isSyncing) {
+                console.log('المزامنة التلقائية: محاولة مزامنة التعديلات...');
+                syncPendingUpdates(true);
+            }
+        }
+
+        function startAutoSync() {
+            if (autoSyncInterval) clearInterval(autoSyncInterval);
+            // المزامنة كل 30 ثانية
+            autoSyncInterval = setInterval(attemptAutoSync, 30000); 
+            // محاولة المزامنة فوراً إذا كان هناك تعديلات
+            attemptAutoSync(); 
+        }
 
         // ========== دوال الدخول والتحميل ==========
 
@@ -1602,6 +1699,8 @@
                 loginSection.classList.add('hidden');
                 mainSection.classList.remove('hidden');
                 currentTeacherSpan.textContent = teacherId; 
+                // بدء المزامنة التلقائية بعد الدخول
+                startAutoSync();
                 if (!useLocal) {
                      showSuccess(`مرحباً بك يا ${teacherId}! تم تحميل البيانات من السيرفر.`);
                 }
@@ -1808,7 +1907,24 @@
                 mainSection.classList.add('hidden');
                 allStudents = []; 
                 renderStudentsTable(); 
+                // إيقاف المزامنة التلقائية عند تسجيل الخروج
+                if (autoSyncInterval) {
+                    clearInterval(autoSyncInterval);
+                    autoSyncInterval = null;
+                }
                 showSuccess('تم تسجيل الخروج بنجاح.');
+            });
+
+            // مراقبة حالة الاتصال بالإنترنت
+            window.addEventListener('online', () => {
+                console.log('الاتصال بالإنترنت متاح - محاولة المزامنة...');
+                attemptAutoSync();
+            });
+
+            window.addEventListener('offline', () => {
+                console.log('الاتصال بالإنترنت مقطوع');
+                syncStatusDiv.textContent = 'المزامنة التلقائية: متوقفة (لا يوجد إنترنت)';
+                syncStatusDiv.style.color = '#f39c12';
             });
         });
     </script>
