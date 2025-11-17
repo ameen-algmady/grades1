@@ -273,7 +273,7 @@
         }
 
         .modal {
-            display: none; /* مخفي افتراضياً */
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
@@ -593,6 +593,119 @@
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
         }
 
+        /* تبويبات الإحصائيات */
+        .stats-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .stats-tab {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+
+        .stats-tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        .stats-tab:hover {
+            color: #2980b9;
+        }
+
+        .stats-tab-content {
+            display: none;
+        }
+
+        .stats-tab-content.active {
+            display: block;
+        }
+
+        /* تبويبات الشهور الجديدة */
+        .months-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .month-tab {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #555;
+            flex: 1;
+            text-align: center;
+            margin: 0 2px;
+        }
+
+        .month-tab.active {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .month-tab:hover:not(.active) {
+            background: #e9ecef;
+            color: #2c3e50;
+        }
+
+        .month-tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .month-tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* تخصيص ألوان التبويبات */
+        .month-tab[data-month="1"] { border-right: 3px solid #3498db; }
+        .month-tab[data-month="2"] { border-right: 3px solid #27ae60; }
+        .month-tab[data-month="3"] { border-right: 3px solid #f39c12; }
+        .month-tab[data-month="all"] { border-right: 3px solid #9b59b6; }
+
+        .month-tab.active[data-month="1"] { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .month-tab.active[data-month="2"] { background: linear-gradient(135deg, #27ae60, #229954); }
+        .month-tab.active[data-month="3"] { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .month-tab.active[data-month="all"] { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+
+        /* تحسين عرض الجدول في التبويبات المختلفة */
+        .month-table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .current-month-indicator {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            color: #2d3436;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -654,6 +767,29 @@
                 padding: 10px 20px;
                 font-size: 14px;
             }
+
+            .stats-tabs,
+            .months-tabs {
+                flex-direction: column;
+            }
+
+            .stats-tab,
+            .month-tab {
+                text-align: center;
+                border-bottom: none;
+                border-right: 3px solid transparent;
+                margin-bottom: 5px;
+            }
+
+            .stats-tab.active,
+            .month-tab.active {
+                border-right-color: inherit;
+                border-bottom: none;
+            }
+
+            .month-tab {
+                margin: 2px 0;
+            }
         }
 
         @media (min-width: 769px) {
@@ -712,7 +848,23 @@
 
             <div id="teacherInfo" class="teacher-info">
                 <h3>📊 معلومات المعلم</h3>
-                <p>مرحباً بك في نظام إدارة النتائج - البيانات </p>
+                <p>مرحباً بك في نظام إدارة النتائج - اختر الشهر الذي تريد العمل عليه</p>
+            </div>
+
+            <!-- تبويبات الشهور الجديدة -->
+            <div class="months-tabs">
+                <button class="month-tab active" data-month="1" onclick="switchMonthTab(1)">
+                    📘 الشهر الأول
+                </button>
+                <button class="month-tab" data-month="2" onclick="switchMonthTab(2)">
+                    📗 الشهر الثاني
+                </button>
+                <button class="month-tab" data-month="3" onclick="switchMonthTab(3)">
+                    📙 الشهر الثالث
+                </button>
+                <button class="month-tab" data-month="all" onclick="switchMonthTab('all')">
+                    📚 جميع الشهور
+                </button>
             </div>
 
             <div id="searchContainer" class="search-container">
@@ -738,43 +890,136 @@
                 </div>
             </div>
 
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Barcode</th>
-                            <th>اسم الطالب</th>
-                            <th>الشعبة</th>
-                            <th>مواظبة 1</th>
-                            <th>شفهي 1</th>
-                            <th>واجبات 1</th>
-                            <th>تحريري 1</th>
-                            <th>المجموع 1</th>
-                            <th>محصلة 1</th>
-                            <th>مواظبة 2</th>
-                            <th>شفهي 2</th>
-                            <th>واجبات 2</th>
-                            <th>تحريري 2</th>
-                            <th>المجموع 2</th>
-                            <th>محصلة 2</th>
-                            <th>مواظبة 3</th>
-                            <th>واجبات 3</th>
-                            <th>شفهي 3</th>
-                            <th>تحريري 3</th>
-                            <th>المجموع 3</th>
-                            <th>محصلة 3</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentsTableBody">
-                        <tr>
-                            <td colspan="23" style="text-align: center; color: #666; padding: 40px;">
-                                ⏳ جاري تحميل البيانات...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- محتوى تبويب الشهر الأول -->
+            <div id="month1Content" class="month-tab-content active">
+                <div style="overflow-x: auto;">
+                    <table class="month-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Barcode</th>
+                                <th>اسم الطالب</th>
+                                <th>الشعبة</th>
+                                <th>مواظبة 1</th>
+                                <th>شفهي 1</th>
+                                <th>واجبات 1</th>
+                                <th>تحريري 1</th>
+                                <th>المجموع 1</th>
+                                <th>محصلة 1</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="month1TableBody">
+                            <tr>
+                                <td colspan="11" style="text-align: center; color: #666; padding: 40px;">
+                                    ⏳ جاري تحميل البيانات...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- محتوى تبويب الشهر الثاني -->
+            <div id="month2Content" class="month-tab-content">
+                <div style="overflow-x: auto;">
+                    <table class="month-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Barcode</th>
+                                <th>اسم الطالب</th>
+                                <th>الشعبة</th>
+                                <th>مواظبة 2</th>
+                                <th>شفهي 2</th>
+                                <th>واجبات 2</th>
+                                <th>تحريري 2</th>
+                                <th>المجموع 2</th>
+                                <th>محصلة 2</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="month2TableBody">
+                            <tr>
+                                <td colspan="11" style="text-align: center; color: #666; padding: 40px;">
+                                    ⏳ جاري تحميل البيانات...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- محتوى تبويب الشهر الثالث -->
+            <div id="month3Content" class="month-tab-content">
+                <div style="overflow-x: auto;">
+                    <table class="month-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Barcode</th>
+                                <th>اسم الطالب</th>
+                                <th>الشعبة</th>
+                                <th>مواظبة 3</th>
+                                <th>واجبات 3</th>
+                                <th>شفهي 3</th>
+                                <th>تحريري 3</th>
+                                <th>المجموع 3</th>
+                                <th>محصلة 3</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="month3TableBody">
+                            <tr>
+                                <td colspan="11" style="text-align: center; color: #666; padding: 40px;">
+                                    ⏳ جاري تحميل البيانات...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- محتوى تبويب جميع الشهور -->
+            <div id="allMonthsContent" class="month-tab-content">
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Barcode</th>
+                                <th>اسم الطالب</th>
+                                <th>الشعبة</th>
+                                <th>مواظبة 1</th>
+                                <th>شفهي 1</th>
+                                <th>واجبات 1</th>
+                                <th>تحريري 1</th>
+                                <th>المجموع 1</th>
+                                <th>محصلة 1</th>
+                                <th>مواظبة 2</th>
+                                <th>شفهي 2</th>
+                                <th>واجبات 2</th>
+                                <th>تحريري 2</th>
+                                <th>المجموع 2</th>
+                                <th>محصلة 2</th>
+                                <th>مواظبة 3</th>
+                                <th>واجبات 3</th>
+                                <th>شفهي 3</th>
+                                <th>تحريري 3</th>
+                                <th>المجموع 3</th>
+                                <th>محصلة 3</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <tr>
+                                <td colspan="23" style="text-align: center; color: #666; padding: 40px;">
+                                    ⏳ جاري تحميل البيانات...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -802,30 +1047,113 @@
             </div>
         </div>
 
+        <!-- نافذة الإحصائيات -->
         <div id="statsModal" class="modal">
             <div class="modal-content">
                 <span class="close-modal" onclick="closeModal('statsModal')">&times;</span>
                 <h3>📊 إحصائيات الطلاب المفلترين (المعلم: <span id="statsTeacherId"></span>)</h3>
-                <div id="statsContainer" class="stats-grid">
-                    <div class="stat-item">
-                        <h4>العدد الكلي</h4>
-                        <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="totalStudentsCount">0</p>
+                
+                <!-- تبويبات للإحصائيات -->
+                <div class="stats-tabs">
+                    <button class="stats-tab active" onclick="openStatsTab('overall')">المعدل العام</button>
+                    <button class="stats-tab" onclick="openStatsTab('month1')">الشهر الأول</button>
+                    <button class="stats-tab" onclick="openStatsTab('month2')">الشهر الثاني</button>
+                    <button class="stats-tab" onclick="openStatsTab('month3')">الشهر الثالث</button>
+                </div>
+                
+                <!-- المعدل العام -->
+                <div id="overallStats" class="stats-tab-content active">
+                    <h4>المعدل العام لجميع الأشهر</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <h4>العدد الكلي</h4>
+                            <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="totalStudentsCount">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>أقل من 5</h4>
+                            <p style="font-size: 24px; color: #e74c3c; font-weight: bold;" id="statsOverallLess5">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 5 إلى 10</h4>
+                            <p style="font-size: 24px; color: #f39c12; font-weight: bold;" id="statsOverall5to10">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 11 إلى 15</h4>
+                            <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="statsOverall11to15">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 16 إلى 20</h4>
+                            <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="statsOverall16to20">0</p>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <h4>أقل من 5</h4>
-                        <p style="font-size: 24px; color: #e74c3c; font-weight: bold;" id="statsLess5">0</p>
+                </div>
+                
+                <!-- الشهر الأول -->
+                <div id="month1Stats" class="stats-tab-content">
+                    <h4>إحصائيات الشهر الأول</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <h4>أقل من 5</h4>
+                            <p style="font-size: 24px; color: #e74c3c; font-weight: bold;" id="statsMonth1Less5">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 5 إلى 10</h4>
+                            <p style="font-size: 24px; color: #f39c12; font-weight: bold;" id="statsMonth15to10">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 11 إلى 15</h4>
+                            <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="statsMonth111to15">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 16 إلى 20</h4>
+                            <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="statsMonth116to20">0</p>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <h4>من 5 إلى 10</h4>
-                        <p style="font-size: 24px; color: #f39c12; font-weight: bold;" id="stats5to10">0</p>
+                </div>
+                
+                <!-- الشهر الثاني -->
+                <div id="month2Stats" class="stats-tab-content">
+                    <h4>إحصائيات الشهر الثاني</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <h4>أقل من 5</h4>
+                            <p style="font-size: 24px; color: #e74c3c; font-weight: bold;" id="statsMonth2Less5">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 5 إلى 10</h4>
+                            <p style="font-size: 24px; color: #f39c12; font-weight: bold;" id="statsMonth25to10">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 11 إلى 15</h4>
+                            <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="statsMonth211to15">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 16 إلى 20</h4>
+                            <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="statsMonth216to20">0</p>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <h4>من 11 إلى 15</h4>
-                        <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="stats11to15">0</p>
-                    </div>
-                    <div class="stat-item">
-                        <h4>من 16 إلى 20</h4>
-                        <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="stats16to20">0</p>
+                </div>
+                
+                <!-- الشهر الثالث -->
+                <div id="month3Stats" class="stats-tab-content">
+                    <h4>إحصائيات الشهر الثالث</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <h4>أقل من 5</h4>
+                            <p style="font-size: 24px; color: #e74c3c; font-weight: bold;" id="statsMonth3Less5">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 5 إلى 10</h4>
+                            <p style="font-size: 24px; color: #f39c12; font-weight: bold;" id="statsMonth35to10">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 11 إلى 15</h4>
+                            <p style="font-size: 24px; color: #3498db; font-weight: bold;" id="statsMonth311to15">0</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4>من 16 إلى 20</h4>
+                            <p style="font-size: 24px; color: #27ae60; font-weight: bold;" id="statsMonth316to20">0</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -842,8 +1170,9 @@
                     </button>
                 </div>
                 
-                <!-- إضافة العنصر المخفي لتخزين معرف الطالب -->
+                <!-- إضافة العنصر المخفي لتخزين معرف الطالب والشهر الحالي -->
                 <input type="hidden" id="editStudentId">
+                <input type="hidden" id="currentEditMonth">
                 
                 <div class="edit-form-grid">
                     <!-- الشهر الأول -->
@@ -947,21 +1276,20 @@
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
     <script>
-        // JavaScript Code (محدث ومصحح بالكامل - الإصدار النهائي)
+        // JavaScript Code (محدث ومصحح بالكامل)
 
         // ========== إعدادات Google Sheets و المتغيرات الرئيسية ==========
         const LOCAL_STORAGE_KEY = 'studentsData';
         const PENDING_UPDATES_KEY = 'pendingUpdates';
-        // ********** هام: استبدل هذا الرابط برابط تطبيق الويب الخاص بك **********
         const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwcaLokiABRJmf9LzZOAskFoKhdLvOeoFHXt9-a5zAb5eTSMwqyNCzgB_HDOsWF9-hO/exec'; 
-        // *******************************************************************
+        
         const STUDENT_PROPERTIES = {
             'ID': 'id',
             'Barcode': 'barcode',
             'الاسم': 'studentName',
             'الشعبة': 'className',
             'المعرف': 'teacherId',
-            'مواظبة 1': 'attendance1', 
+            'مواظبة1 ': 'attendance1', 
             'شفهي 1': 'oral1',
             'واجبات 1': 'homework1',
             'تحريري 1': 'written1',
@@ -978,18 +1306,16 @@
             'شفهي 3': 'oral3',
             'تحريري 3': 'written3',
             'المجمـــــوع': 'total3', 
-            'محصلة3': 'result3',
-            'غياب 1': 'absence1',
-            'غياب2': 'absence2',
-            'غياب3': 'absence3'
+            'محصلة3': 'result3'
         };
 
-        // ========== العناصر الرئيسية في الصفحة (تم توحيد الأسماء مع HTML) ==========
+        // ========== العناصر الرئيسية في الصفحة ==========
         const teacherIdInput = document.getElementById('teacherId');
         const loginSection = document.getElementById('loginSection');
         const mainSection = document.getElementById('mainSection');
         const loginBtn = document.getElementById('loginBtn');
-        const studentsTableBody = document.getElementById('studentsTableBody');
+        const retryBtn = document.getElementById('retryBtn');
+        const useLocalDataBtn = document.getElementById('useLocalDataBtn');
         const loadingDiv = document.getElementById('loading');
         const connectionStatus = document.getElementById('connectionStatus');
         const syncSheetsBtn = document.getElementById('syncSheetsBtn');
@@ -997,37 +1323,32 @@
         const syncStatusDiv = document.getElementById('syncStatus'); 
         const currentTeacherSpan = document.getElementById('currentTeacher');
         const studentsCountSpan = document.getElementById('studentsCount');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const debugBtn = document.getElementById('debugBtn');
+        const qrScanBtn = document.getElementById('qrScanBtn');
+        const showStatsBtn = document.getElementById('showStatsBtn');
+        const saveLocalManualBtn = document.getElementById('saveLocalManualBtn');
 
-        // عناصر البحث والفلترة والإحصاء (تم تحديث الأسماء هنا لتطابق HTML)
+        // عناصر البحث والفلترة
         const searchNameInput = document.getElementById('searchNameInput');
         const classNameFilter = document.getElementById('classNameFilter');
-        const showStatsBtn = document.getElementById('showStatsBtn'); 
-        const statsModal = document.getElementById('statsModal'); 
-        const saveLocalManualBtn = document.getElementById('saveLocalManualBtn');
-        const statsTeacherIdSpan = document.getElementById('statsTeacherId');
-        const totalStudentsCountSpan = document.getElementById('totalStudentsCount');
-        const statsLess5Span = document.getElementById('statsLess5');
-        const stats5to10Span = document.getElementById('stats5to10');
-        const stats11to15Span = document.getElementById('stats11to15');
-        const stats16to20Span = document.getElementById('stats16to20');
 
-        // عناصر ماسح QR Code
-        const qrScanBtn = document.getElementById('qrScanBtn');
+        // عناصر الجداول للشهور المختلفة
+        const studentsTableBody = document.getElementById('studentsTableBody');
+        const month1TableBody = document.getElementById('month1TableBody');
+        const month2TableBody = document.getElementById('month2TableBody');
+        const month3TableBody = document.getElementById('month3TableBody');
+
+        // عناصر الـ Modals
         const qrModal = document.getElementById('qrModal');
-        const qrScanner = document.getElementById('qrScanner');
-        const stopScannerBtn = document.getElementById('stopScannerBtn');
-        const qrResult = document.getElementById('qrResult');
-        const qrResultText = document.getElementById('qrResultText');
-
-        // عناصر الـ Modal
+        const statsModal = document.getElementById('statsModal');
         const editModal = document.getElementById('editModal');
-        const useLocalDataBtn = document.getElementById('useLocalDataBtn'); 
 
-        // عناصر إدخال الدرجات - تم إعادة تعريفها بشكل صحيح
+        // عناصر إدخال الدرجات
         let editAttendance1, editOral1, editHomework1, editWritten1;
         let editAttendance2, editOral2, editHomework2, editWritten2;
         let editAttendance3, editOral3, editHomework3, editWritten3;
-        let editStudentId, currentStudentName;
+        let editStudentId, currentStudentName, currentEditMonth;
 
         // عناصر عرض المجموع والمحصلة
         let totalDisplay1, totalDisplay2, totalDisplay3;
@@ -1039,6 +1360,7 @@
         let pendingUpdates = [];
         let isSyncing = false; 
         let autoSyncInterval; 
+        let currentMonthTab = 1;
         let isScannerActive = false;
         let videoStream = null;
         let animationFrame = null;
@@ -1062,6 +1384,7 @@
             // العناصر المخفية والعرض
             editStudentId = document.getElementById('editStudentId');
             currentStudentName = document.getElementById('currentStudentName');
+            currentEditMonth = document.getElementById('currentEditMonth');
             
             // عناصر عرض المجموع والمحصلة
             totalDisplay1 = document.getElementById('totalDisplay1');
@@ -1080,7 +1403,6 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.style.display = 'none';
-                // إيقاف الماسح عند إغلاق النافذة
                 if (modalId === 'qrModal') {
                     stopQRScanner();
                 }
@@ -1144,28 +1466,38 @@
                 const newItem = {
                     originalRowIndex: item.originalRowIndex
                 };
+                
+                // تطابق مرن للمفاتيح
                 for (const [arabicKey, jsKey] of Object.entries(STUDENT_PROPERTIES)) {
+                    // البحث عن المفتاح مع مراعاة الاختلافات البسيطة
+                    const foundKey = Object.keys(item).find(sheetKey => 
+                        sheetKey.trim().replace(/\s+/g, ' ') === arabicKey.trim().replace(/\s+/g, ' ')
+                    );
                     
-                    const cleanedArabicKey = arabicKey.trim(); 
-                    let value = undefined;
-
-                    for (const sheetKey in item) {
-                        if (sheetKey.trim() === cleanedArabicKey) {
-                            value = item[sheetKey];
-                            break;
+                    if (foundKey) {
+                        let value = item[foundKey];
+                        
+                        if (jsKey.includes('total') || jsKey.includes('result')) {
+                            newItem[jsKey] = (value !== undefined && value !== '') ? value : 0;
+                        } else if (scoreKeys.some(key => jsKey.startsWith(key))) {
+                            newItem[jsKey] = (value !== undefined && value !== '') ? value : "";
+                        } else {
+                            newItem[jsKey] = (value !== undefined && value !== '') ? value : '';
                         }
-                    }
-
-                    if (jsKey.includes('total') || jsKey.includes('result') || jsKey.includes('absence')) {
-                        newItem[jsKey] = (value !== undefined && value !== '') ? value : 0;
-                    } else if (scoreKeys.some(key => jsKey.startsWith(key))) {
-                        newItem[jsKey] = (value !== undefined && value !== '') ? value : ""; 
                     } else {
-                        newItem[jsKey] = (value !== undefined && value !== '') ? value : '';
+                        // إذا لم يتم العثور على المفتاح، تعيين قيمة افتراضية
+                        if (jsKey.includes('total') || jsKey.includes('result')) {
+                            newItem[jsKey] = 0;
+                        } else if (scoreKeys.some(key => jsKey.startsWith(key))) {
+                            newItem[jsKey] = "";
+                        } else {
+                            newItem[jsKey] = '';
+                        }
                     }
                 }
                 
-                newItem.id = newItem.id ? newItem.id.toString().trim() : ''; 
+                // تنظيف القيم
+                newItem.id = newItem.id ? newItem.id.toString().trim() : '';
                 newItem.teacherId = newItem.teacherId ? newItem.teacherId.toString().trim() : '';
                 
                 return newItem;
@@ -1182,7 +1514,6 @@
             if (isNaN(numValue)) {
                 return '';
             }
-            // إذا كانت القيمة عشرية، نتركها، وإلا نعرضها كعدد صحيح.
             if (numValue % 1 !== 0) {
                  return numValue.toFixed(1);
             }
@@ -1199,7 +1530,6 @@
 
         function calculateResult(total) {
             const value = parseFloat(total) || 0;
-            // المحصلة = المجموع ÷ 5
             const result = (value / 5).toFixed(1);
             return result;
         }
@@ -1212,7 +1542,6 @@
             return 'result-cell result-poor';
         }
 
-        // دالة حساب المجموع والمحصلة للشهر
         function calculateMonthTotal(month) {
             const att = parseFloat(document.getElementById(`editAttendance${month}`).value) || 0;
             const oral = parseFloat(document.getElementById(`editOral${month}`).value) || 0;
@@ -1226,19 +1555,201 @@
             document.getElementById(`resultDisplay${month}`).textContent = result;
         }
 
-        // دالة عرض الجدول 
-        function renderStudentsTable(students = allStudents) {
-            studentsTableBody.innerHTML = '';
-            studentsCountSpan.textContent = students.length;
+        // ========== دوال تبويبات الشهور الجديدة ==========
 
+        function switchMonthTab(month) {
+            // إخفاء جميع المحتويات
+            document.querySelectorAll('.month-tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إزالة النشاط من جميع الأزرار
+            document.querySelectorAll('.month-tab').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // إظهار المحتوى المحدد
+            document.getElementById(`month${month}Content`).classList.add('active');
+            
+            // تفعيل الزر المحدد
+            document.querySelector(`.month-tab[data-month="${month}"]`).classList.add('active');
+            
+            // تحديث التبويب الحالي
+            currentMonthTab = month;
+            
+            // إعادة تطبيق الفلاتر على الجدول الحالي
+            updateDisplayedStudents();
+            
+            console.log(`تم التبديل إلى تبويب الشهر: ${month}`);
+        }
+
+        function openEditModal(studentId, focusMonth = null) {
+            const targetMonth = focusMonth || currentMonthTab;
+            console.log(`فتح نافذة التعديل للطالب: ${studentId}، التركيز على الشهر: ${targetMonth}`);
+            
+            const targetId = studentId.toString().trim(); 
+            const student = allStudents.find(s => s.id && s.id.toString().trim() === targetId);
+            
+            if (!student) {
+                showError(`❌ لم يتم العثور على الطالب. الـ ID المستهدف: "${targetId}".`);
+                return;
+            }
+            
+            // تعبئة البيانات
+            currentStudentName.textContent = student.studentName;
+            editStudentId.value = student.id;
+            currentEditMonth.value = targetMonth;
+
+            // تعبئة القيم
+            editAttendance1.value = formatGrade(student.attendance1);
+            editOral1.value = formatGrade(student.oral1);
+            editHomework1.value = formatGrade(student.homework1);
+            editWritten1.value = formatGrade(student.written1);
+
+            editAttendance2.value = formatGrade(student.attendance2);
+            editOral2.value = formatGrade(student.oral2);
+            editHomework2.value = formatGrade(student.homework2);
+            editWritten2.value = formatGrade(student.written2);
+
+            editAttendance3.value = formatGrade(student.attendance3);
+            editHomework3.value = formatGrade(student.homework3);
+            editOral3.value = formatGrade(student.oral3);
+            editWritten3.value = formatGrade(student.written3);
+
+            // حساب وعرض المجاميع والمحصلات
+            calculateMonthTotal(1);
+            calculateMonthTotal(2);
+            calculateMonthTotal(3);
+
+            // إضافة مؤشر للشهر الحالي
+            highlightCurrentMonth(targetMonth);
+
+            // عرض النافذة
+            editModal.style.display = 'block';
+        }
+
+        function highlightCurrentMonth(month) {
+            // إزالة التمييز من جميع الأقسام
+            document.querySelectorAll('.month-section').forEach(section => {
+                section.style.background = '#f8f9fa';
+                section.style.border = '1px solid #dee2e6';
+            });
+            
+            // تمييز الشهر المحدد
+            if (month !== 'all') {
+                const currentSection = document.querySelector(`.month-section:nth-child(${month})`);
+                if (currentSection) {
+                    currentSection.style.background = '#e8f4fd';
+                    currentSection.style.border = '2px solid #3498db';
+                    
+                    // تمرير إلى القسم المميز
+                    currentSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        // ========== دوال عرض الجداول للشهور المختلفة ==========
+
+        function renderMonth1Table(students = allStudents) {
+            month1TableBody.innerHTML = '';
+            
             if (students.length === 0) {
-                studentsTableBody.innerHTML = `<tr><td colspan="23" style="text-align: center; color: #e74c3c; padding: 40px;">لا توجد بيانات طلاب مطابقة لمعرف المعلم أو نتائج الفلترة.</td></tr>`;
+                month1TableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #e74c3c; padding: 40px;">لا توجد بيانات طلاب مطابقة للفلترة.</td></tr>`;
                 return;
             }
             
             students.forEach(student => {
+                const total1 = calculateTotal(student, 1);
+                const result1 = calculateResult(total1);
+
                 const row = document.createElement('tr');
-                
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.barcode}</td>
+                    <td class="student-name" onclick="openEditModal('${student.id}', 1)">${student.studentName}</td>
+                    <td>${student.className}</td>
+                    <td>${formatGrade(student.attendance1)}</td>
+                    <td>${formatGrade(student.oral1)}</td>
+                    <td>${formatGrade(student.homework1)}</td>
+                    <td>${formatGrade(student.written1)}</td>
+                    <td>${total1}</td>
+                    <td class="${getResultClass(result1)}">${result1}</td>
+                    <td><button class="edit-btn" onclick="openEditModal('${student.id}', 1)">تعديل</button></td>
+                `;
+                month1TableBody.appendChild(row);
+            });
+        }
+
+        function renderMonth2Table(students = allStudents) {
+            month2TableBody.innerHTML = '';
+            
+            if (students.length === 0) {
+                month2TableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #e74c3c; padding: 40px;">لا توجد بيانات طلاب مطابقة للفلترة.</td></tr>`;
+                return;
+            }
+            
+            students.forEach(student => {
+                const total2 = calculateTotal(student, 2);
+                const result2 = calculateResult(total2);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.barcode}</td>
+                    <td class="student-name" onclick="openEditModal('${student.id}', 2)">${student.studentName}</td>
+                    <td>${student.className}</td>
+                    <td>${formatGrade(student.attendance2)}</td>
+                    <td>${formatGrade(student.oral2)}</td>
+                    <td>${formatGrade(student.homework2)}</td>
+                    <td>${formatGrade(student.written2)}</td>
+                    <td>${total2}</td>
+                    <td class="${getResultClass(result2)}">${result2}</td>
+                    <td><button class="edit-btn" onclick="openEditModal('${student.id}', 2)">تعديل</button></td>
+                `;
+                month2TableBody.appendChild(row);
+            });
+        }
+
+        function renderMonth3Table(students = allStudents) {
+            month3TableBody.innerHTML = '';
+            
+            if (students.length === 0) {
+                month3TableBody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: #e74c3c; padding: 40px;">لا توجد بيانات طلاب مطابقة للفلترة.</td></tr>`;
+                return;
+            }
+            
+            students.forEach(student => {
+                const total3 = calculateTotal(student, 3);
+                const result3 = calculateResult(total3);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${student.id}</td>
+                    <td>${student.barcode}</td>
+                    <td class="student-name" onclick="openEditModal('${student.id}', 3)">${student.studentName}</td>
+                    <td>${student.className}</td>
+                    <td>${formatGrade(student.attendance3)}</td>
+                    <td>${formatGrade(student.homework3)}</td>
+                    <td>${formatGrade(student.oral3)}</td>
+                    <td>${formatGrade(student.written3)}</td>
+                    <td>${total3}</td>
+                    <td class="${getResultClass(result3)}">${result3}</td>
+                    <td><button class="edit-btn" onclick="openEditModal('${student.id}', 3)">تعديل</button></td>
+                `;
+                month3TableBody.appendChild(row);
+            });
+        }
+
+        function renderAllMonthsTable(students = allStudents) {
+            studentsTableBody.innerHTML = '';
+            studentsCountSpan.textContent = students.length;
+
+            if (students.length === 0) {
+                studentsTableBody.innerHTML = `<tr><td colspan="23" style="text-align: center; color: #e74c3c; padding: 40px;">لا توجد بيانات طلاب مطابقة للفلترة.</td></tr>`;
+                return;
+            }
+            
+            students.forEach(student => {
                 const total1 = calculateTotal(student, 1);
                 const result1 = calculateResult(total1);
                 const total2 = calculateTotal(student, 2);
@@ -1246,6 +1757,7 @@
                 const total3 = calculateTotal(student, 3);
                 const result3 = calculateResult(total3);
 
+                const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${student.id}</td>
                     <td>${student.barcode}</td>
@@ -1275,7 +1787,7 @@
             });
         }
 
-        // دالة تحديث عرض الجدول بناءً على الفلاتر
+        // دالة تحديث العرض بناءً على التبويب الحالي
         function updateDisplayedStudents() {
             const searchTerm = searchNameInput ? searchNameInput.value.trim().toLowerCase() : '';
             const selectedClass = classNameFilter ? classNameFilter.value : '';
@@ -1287,7 +1799,23 @@
                 return matchesName && matchesClass;
             });
 
-            renderStudentsTable(filteredStudents);
+            studentsCountSpan.textContent = filteredStudents.length;
+
+            // تحديث الجدول المناسب بناءً على التبويب الحالي
+            switch (currentMonthTab) {
+                case 1:
+                    renderMonth1Table(filteredStudents);
+                    break;
+                case 2:
+                    renderMonth2Table(filteredStudents);
+                    break;
+                case 3:
+                    renderMonth3Table(filteredStudents);
+                    break;
+                case 'all':
+                    renderAllMonthsTable(filteredStudents);
+                    break;
+            }
         }
 
         // دالة ملء خيارات الشعب ديناميكيًا عند التحميل
@@ -1303,131 +1831,6 @@
                 option.textContent = className;
                 classNameFilter.appendChild(option);
             });
-        }
-
-        // دالة فتح نافذة التعديل - تم إصلاحها بالكامل
-        function openEditModal(studentId) {
-            console.log('فتح نافذة التعديل للطالب:', studentId);
-            
-            // التأكد من تهيئة العناصر
-            if (!editAttendance1) {
-                initializeDOMElements();
-            }
-            
-            const targetId = studentId.toString().trim(); 
-            const student = allStudents.find(s => s.id && s.id.toString().trim() === targetId);
-            
-            if (!student) {
-                showError(`❌ لم يتم العثور على الطالب. الـ ID المستهدف: "${targetId}".`);
-                return;
-            }
-            
-            // تعبئة البيانات
-            currentStudentName.textContent = student.studentName;
-            editStudentId.value = student.id;
-
-            // تعبئة القيم
-            editAttendance1.value = formatGrade(student.attendance1);
-            editOral1.value = formatGrade(student.oral1);
-            editHomework1.value = formatGrade(student.homework1);
-            editWritten1.value = formatGrade(student.written1);
-
-            editAttendance2.value = formatGrade(student.attendance2);
-            editOral2.value = formatGrade(student.oral2);
-            editHomework2.value = formatGrade(student.homework2);
-            editWritten2.value = formatGrade(student.written2);
-
-            editAttendance3.value = formatGrade(student.attendance3);
-            editHomework3.value = formatGrade(student.homework3);
-            editOral3.value = formatGrade(student.oral3);
-            editWritten3.value = formatGrade(student.written3);
-
-            // حساب وعرض المجاميع والمحصلات
-            calculateMonthTotal(1);
-            calculateMonthTotal(2);
-            calculateMonthTotal(3);
-
-            // عرض النافذة
-            editModal.style.display = 'block';
-            console.log('تم فتح نافذة التعديل بنجاح');
-        }
-
-        // دالة حساب وعرض الإحصاءات
-        function showStatistics() {
-            const currentStudents = [...studentsTableBody.querySelectorAll('tr')].map(row => {
-                const idCell = row.querySelector('td:first-child');
-                if (idCell) {
-                    const studentId = idCell.textContent.trim();
-                    return allStudents.find(s => s.id && s.id.toString().trim() === studentId);
-                }
-                return null;
-            }).filter(s => s !== null);
-
-            if (currentStudents.length === 0) {
-                alert('لا توجد بيانات طلاب (وفقاً للفلترة الحالية) لحساب الإحصاءات.');
-                return;
-            }
-
-            let stats = { 
-                less5: 0, 
-                from5to10: 0, 
-                from11to15: 0, 
-                from16to20: 0, 
-                total: currentStudents.length 
-            };
-            
-            currentStudents.forEach(student => {
-                const result1 = parseFloat(calculateResult(calculateTotal(student, 1))) || 0;
-                const result2 = parseFloat(calculateResult(calculateTotal(student, 2))) || 0;
-                const result3 = parseFloat(calculateResult(calculateTotal(student, 3))) || 0;
-                
-                const averageResult = (result1 + result2 + result3) / 3;
-                
-                if (averageResult < 5) {
-                    stats.less5++;
-                } else if (averageResult <= 10) {
-                    stats.from5to10++;
-                } else if (averageResult <= 15) {
-                    stats.from11to15++;
-                } else {
-                    stats.from16to20++;
-                }
-            });
-
-            // ملء النموذج وعرضه
-            statsTeacherIdSpan.textContent = currentTeacherId;
-            totalStudentsCountSpan.textContent = stats.total;
-            statsLess5Span.textContent = stats.less5;
-            stats5to10Span.textContent = stats.from5to10;
-            stats11to15Span.textContent = stats.from11to15;
-            stats16to20Span.textContent = stats.from16to20;
-            
-            statsModal.style.display = 'block';
-        }
-
-        // دالة حفظ البيانات المحلية
-        function saveDataToLocalStorage() {
-            try {
-                const dataToSave = {
-                    students: allStudents,
-                    teacherId: currentTeacherId,
-                    timestamp: new Date().toISOString()
-                };
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
-                return true;
-            } catch (error) {
-                showError('فشل في حفظ البيانات المحلية: ' + error.message);
-                return false;
-            }
-        }
-
-        function loadPendingUpdates() {
-            try {
-                const data = localStorage.getItem(PENDING_UPDATES_KEY);
-                return data ? JSON.parse(data) : [];
-            } catch (error) {
-                return [];
-            }
         }
 
         // ========== دوال إدارة التعديلات المعلقة والمزامنة ==========
@@ -1448,6 +1851,15 @@
             }
         }
 
+        function loadPendingUpdates() {
+            try {
+                const data = localStorage.getItem(PENDING_UPDATES_KEY);
+                return data ? JSON.parse(data) : [];
+            } catch (error) {
+                return [];
+            }
+        }
+
         function savePendingUpdates() {
             try {
                 localStorage.setItem(PENDING_UPDATES_KEY, JSON.stringify(pendingUpdates));
@@ -1455,6 +1867,21 @@
                 return true;
             } catch (error) {
                 showError('فشل في حفظ التعديلات المعلقة: ' + error.message);
+                return false;
+            }
+        }
+
+        function saveDataToLocalStorage() {
+            try {
+                const dataToSave = {
+                    students: allStudents,
+                    teacherId: currentTeacherId,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(dataToSave));
+                return true;
+            } catch (error) {
+                showError('فشل في حفظ البيانات المحلية: ' + error.message);
                 return false;
             }
         }
@@ -1608,9 +2035,7 @@
 
         function startAutoSync() {
             if (autoSyncInterval) clearInterval(autoSyncInterval);
-            // المزامنة كل 30 ثانية
             autoSyncInterval = setInterval(attemptAutoSync, 30000); 
-            // محاولة المزامنة فوراً إذا كان هناك تعديلات
             attemptAutoSync(); 
         }
 
@@ -1699,7 +2124,6 @@
                 loginSection.classList.add('hidden');
                 mainSection.classList.remove('hidden');
                 currentTeacherSpan.textContent = teacherId; 
-                // بدء المزامنة التلقائية بعد الدخول
                 startAutoSync();
                 if (!useLocal) {
                      showSuccess(`مرحباً بك يا ${teacherId}! تم تحميل البيانات من السيرفر.`);
@@ -1726,13 +2150,117 @@
             }
         }
 
+        // ========== دوال الإحصائيات ==========
+
+        function showStatistics() {
+            const currentStudents = [...document.querySelectorAll('.month-table tbody tr, table tbody tr')]
+                .map(row => {
+                    const idCell = row.querySelector('td:first-child');
+                    if (idCell) {
+                        const studentId = idCell.textContent.trim();
+                        return allStudents.find(s => s.id && s.id.toString().trim() === studentId);
+                    }
+                    return null;
+                })
+                .filter(s => s !== null);
+
+            if (currentStudents.length === 0) {
+                alert('لا توجد بيانات طلاب (وفقاً للفلترة الحالية) لحساب الإحصاءات.');
+                return;
+            }
+
+            // إحصائيات لكل شهر على حدة
+            let statsMonth1 = { less5: 0, from5to10: 0, from11to15: 0, from16to20: 0 };
+            let statsMonth2 = { less5: 0, from5to10: 0, from11to15: 0, from16to20: 0 };
+            let statsMonth3 = { less5: 0, from5to10: 0, from11to15: 0, from16to20: 0 };
+            let statsOverall = { less5: 0, from5to10: 0, from11to15: 0, from16to20: 0, total: currentStudents.length };
+            
+            currentStudents.forEach(student => {
+                // الشهر الأول
+                const result1 = parseFloat(calculateResult(calculateTotal(student, 1))) || 0;
+                categorizeResult(result1, statsMonth1);
+                
+                // الشهر الثاني
+                const result2 = parseFloat(calculateResult(calculateTotal(student, 2))) || 0;
+                categorizeResult(result2, statsMonth2);
+                
+                // الشهر الثالث
+                const result3 = parseFloat(calculateResult(calculateTotal(student, 3))) || 0;
+                categorizeResult(result3, statsMonth3);
+                
+                // المعدل العام
+                const averageResult = (result1 + result2 + result3) / 3;
+                categorizeResult(averageResult, statsOverall);
+            });
+
+            // تحديث واجهة الإحصائيات
+            updateStatsDisplay(statsMonth1, statsMonth2, statsMonth3, statsOverall);
+            statsModal.style.display = 'block';
+        }
+
+        function categorizeResult(result, statsObj) {
+            if (result < 5) {
+                statsObj.less5++;
+            } else if (result <= 10) {
+                statsObj.from5to10++;
+            } else if (result <= 15) {
+                statsObj.from11to15++;
+            } else {
+                statsObj.from16to20++;
+            }
+        }
+
+        function updateStatsDisplay(month1, month2, month3, overall) {
+            document.getElementById('statsTeacherId').textContent = currentTeacherId;
+            
+            document.getElementById('totalStudentsCount').textContent = overall.total;
+            
+            // الشهر الأول
+            document.getElementById('statsMonth1Less5').textContent = month1.less5;
+            document.getElementById('statsMonth15to10').textContent = month1.from5to10;
+            document.getElementById('statsMonth111to15').textContent = month1.from11to15;
+            document.getElementById('statsMonth116to20').textContent = month1.from16to20;
+            
+            // الشهر الثاني
+            document.getElementById('statsMonth2Less5').textContent = month2.less5;
+            document.getElementById('statsMonth25to10').textContent = month2.from5to10;
+            document.getElementById('statsMonth211to15').textContent = month2.from11to15;
+            document.getElementById('statsMonth216to20').textContent = month2.from16to20;
+            
+            // الشهر الثالث
+            document.getElementById('statsMonth3Less5').textContent = month3.less5;
+            document.getElementById('statsMonth35to10').textContent = month3.from5to10;
+            document.getElementById('statsMonth311to15').textContent = month3.from11to15;
+            document.getElementById('statsMonth316to20').textContent = month3.from16to20;
+            
+            // المعدل العام
+            document.getElementById('statsOverallLess5').textContent = overall.less5;
+            document.getElementById('statsOverall5to10').textContent = overall.from5to10;
+            document.getElementById('statsOverall11to15').textContent = overall.from11to15;
+            document.getElementById('statsOverall16to20').textContent = overall.from16to20;
+        }
+
+        function openStatsTab(tabName) {
+            document.querySelectorAll('.stats-tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.stats-tab').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            document.getElementById(tabName + 'Stats').classList.add('active');
+            
+            event.currentTarget.classList.add('active');
+        }
+
         // ========== دوال ماسح QR Code ==========
 
         async function startQRScanner() {
             if (isScannerActive) return;
             
             isScannerActive = true;
-            qrResult.classList.add('hidden');
+            document.getElementById('qrResult').classList.add('hidden');
             
             try {
                 videoStream = await navigator.mediaDevices.getUserMedia({ 
@@ -1747,8 +2275,8 @@
                 video.setAttribute('playsinline', 'true');
                 video.srcObject = videoStream;
                 
-                qrScanner.innerHTML = '';
-                qrScanner.appendChild(video);
+                document.getElementById('qrScanner').innerHTML = '';
+                document.getElementById('qrScanner').appendChild(video);
                 
                 await video.play();
                 
@@ -1801,12 +2329,13 @@
                     videoStream = null;
                 }
                 
-                qrScanner.innerHTML = '<span>جاري تشغيل الكاميرا...</span>';
+                document.getElementById('qrScanner').innerHTML = '<span>جاري تشغيل الكاميرا...</span>';
             }
         }
 
         function showQRResult(message, type) {
-            qrResultText.textContent = message;
+            document.getElementById('qrResultText').textContent = message;
+            const qrResult = document.getElementById('qrResult');
             qrResult.className = "qr-result";
             qrResult.classList.remove("hidden");
             
@@ -1828,8 +2357,7 @@
                 searchNameInput.value = '';
                 classNameFilter.value = '';
                 
-                const filteredStudents = [student];
-                renderStudentsTable(filteredStudents);
+                updateDisplayedStudents();
                 
                 showSuccess(`✅ تم العثور على الطالب: ${student.studentName}`);
                 
@@ -1845,7 +2373,6 @@
         // ========== تهيئة التطبيق وربط الأحداث ==========
 
         document.addEventListener('DOMContentLoaded', () => {
-            // تهيئة عناصر DOM أولاً
             initializeDOMElements();
             
             pendingUpdates = loadPendingUpdates();
@@ -1855,59 +2382,40 @@
 
             // ربط أحداث الدخول والتحميل
             loginBtn.addEventListener('click', () => login(false));
-            if (useLocalDataBtn) {
-                useLocalDataBtn.addEventListener('click', () => login(true));
-            }
-            
-            const retryBtn = document.getElementById('retryBtn');
-            if (retryBtn) {
-                retryBtn.addEventListener('click', initializeData);
-            }
+            useLocalDataBtn.addEventListener('click', () => login(true));
+            retryBtn.addEventListener('click', initializeData);
 
             // ربط أحداث البحث والفلترة
-            if (searchNameInput) {
-                searchNameInput.addEventListener('input', updateDisplayedStudents);
-            }
-            if (classNameFilter) {
-                classNameFilter.addEventListener('change', updateDisplayedStudents);
-            }
+            searchNameInput.addEventListener('input', updateDisplayedStudents);
+            classNameFilter.addEventListener('change', updateDisplayedStudents);
             
             // ربط أحداث الإحصاءات والحفظ والمزامنة
-            if (showStatsBtn) {
-                showStatsBtn.addEventListener('click', showStatistics);
-            }
-            if (saveLocalManualBtn) { 
-                saveLocalManualBtn.addEventListener('click', () => {
-                    if (saveDataToLocalStorage()) {
-                        showSuccess('✅ تم حفظ البيانات الحالية للمعلم بنجاح في الذاكرة المحلية.');
-                    } else {
-                        showError('❌ فشل في حفظ البيانات المحلية.');
-                    }
-                });
-            }
+            showStatsBtn.addEventListener('click', showStatistics);
+            saveLocalManualBtn.addEventListener('click', () => {
+                if (saveDataToLocalStorage()) {
+                    showSuccess('✅ تم حفظ البيانات الحالية للمعلم بنجاح في الذاكرة المحلية.');
+                } else {
+                    showError('❌ فشل في حفظ البيانات المحلية.');
+                }
+            });
 
             // ربط أحداث ماسح QR Code
-            if (qrScanBtn) {
-                qrScanBtn.addEventListener('click', () => {
-                    qrModal.style.display = 'block';
-                    setTimeout(() => {
-                        startQRScanner();
-                    }, 500);
-                });
-            }
+            qrScanBtn.addEventListener('click', () => {
+                qrModal.style.display = 'block';
+                setTimeout(() => {
+                    startQRScanner();
+                }, 500);
+            });
             
-            if (stopScannerBtn) {
-                stopScannerBtn.addEventListener('click', stopQRScanner);
-            }
+            document.getElementById('stopScannerBtn').addEventListener('click', stopQRScanner);
 
             syncSheetsBtn.addEventListener('click', () => syncPendingUpdates(false));
             
-            document.getElementById('logoutBtn').addEventListener('click', () => {
+            logoutBtn.addEventListener('click', () => {
                 loginSection.classList.remove('hidden');
                 mainSection.classList.add('hidden');
                 allStudents = []; 
-                renderStudentsTable(); 
-                // إيقاف المزامنة التلقائية عند تسجيل الخروج
+                updateDisplayedStudents(); 
                 if (autoSyncInterval) {
                     clearInterval(autoSyncInterval);
                     autoSyncInterval = null;
@@ -1926,6 +2434,8 @@
                 syncStatusDiv.textContent = 'المزامنة التلقائية: متوقفة (لا يوجد إنترنت)';
                 syncStatusDiv.style.color = '#f39c12';
             });
+
+            console.log('تم تهيئة التطبيق بنجاح');
         });
     </script>
 </body>
