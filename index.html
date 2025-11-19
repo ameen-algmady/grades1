@@ -255,7 +255,38 @@
             background-color: rgba(231, 76, 60, 0.1);
             border-color: rgba(231, 76, 60, 0.3);
         }
+.install-btn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    display: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
 
+.install-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #8e44ad, #732d91);
+}
+
+.install-btn:active {
+    transform: translateY(0);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
         .student-name {
             color: #3498db;
             cursor: pointer;
@@ -1606,9 +1637,14 @@
             return success;
         }
 
-        // ========== نظام PWA والتثبيت ==========
-       function initializePWA() {
-    console.log('تهيئة نظام PWA لتطبيق grades...');
+      // ========== نظام PWA والتثبيت ==========
+// إزالة التعريف المكرر - استخدم هذا التعريف فقط
+let deferredPrompt = null;
+let installButton = null;
+
+function initializePWA() {
+    console.log('🚀 تهيئة نظام PWA لتطبيق grades...');
+    installButton = document.getElementById('installBtn');
     
     // تسجيل Service Worker مع النطاق المحدد
     if ('serviceWorker' in navigator) {
@@ -1638,52 +1674,92 @@
 
     // حدث قبل التثبيت
     window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('حدث beforeinstallprompt تم تشغيله لتطبيق grades');
+        console.log('🎯 حدث beforeinstallprompt تم تشغيله لتطبيق grades');
         e.preventDefault();
         deferredPrompt = e;
-        installBtn.style.display = 'block';
+        showInstallButton();
         updatePWAStatus('📲 تطبيق النتائج جاهز للتثبيت');
     });
 
     // حدث بعد التثبيت
     window.addEventListener('appinstalled', (evt) => {
-        console.log('تم تثبيت تطبيق النتائج بنجاح');
-        installBtn.style.display = 'none';
+        console.log('🎉 تم تثبيت تطبيق النتائج بنجاح');
+        hideInstallButton();
         deferredPrompt = null;
         updatePWAStatus('✅ تطبيق النتائج مثبت');
-        
-        // تتبع التثبيت
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'app_installed', {
-                'app_name': 'نتائج الطلاب'
-            });
-        }
     });
 
     // التحقق إذا كان التطبيق مثبتاً بالفعل
     if (window.matchMedia('(display-mode: standalone)').matches) {
-        console.log('تطبيق النتائج يعمل في وضع standalone');
-        installBtn.style.display = 'none';
+        console.log('📱 تطبيق النتائج يعمل في وضع standalone');
+        hideInstallButton();
         updatePWAStatus('✅ تطبيق النتائج مثبت ويعمل');
     }
 
     // زر التثبيت
-    installBtn.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`نتيجة تثبيت تطبيق النتائج: ${outcome}`);
-            
-            if (outcome === 'accepted') {
-                updatePWAStatus('✅ تم قبول تثبيت التطبيق');
-            } else {
-                updatePWAStatus('❌ تم رفض تثبيت التطبيق');
-            }
-            
-            deferredPrompt = null;
-            installBtn.style.display = 'none';
+    if (installButton) {
+        installButton.addEventListener('click', installPWA);
+    }
+}
+
+// دالة التثبيت
+async function installPWA() {
+    if (!deferredPrompt) {
+        console.log('❌ لا يوجد prompt للتثبيت');
+        showError('❌ غير قادر على التثبيت حالياً. حاول تحديث الصفحة.');
+        return;
+    }
+
+    console.log('🔄 بدء عملية التثبيت...');
+    
+    try {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`نتيجة تثبيت تطبيق النتائج: ${outcome}`);
+        
+        if (outcome === 'accepted') {
+            console.log('✅ تم قبول تثبيت التطبيق');
+            showSuccess('✅ تم تثبيت التطبيق بنجاح!');
+        } else {
+            console.log('❌ تم رفض التثبيت');
+            showError('❌ تم إلغاء التثبيت');
         }
-    });
+    } catch (error) {
+        console.log('❌ خطأ في عملية التثبيت:', error);
+        showError('❌ فشلت عملية التثبيت');
+    }
+    
+    deferredPrompt = null;
+    hideInstallButton();
+}
+
+// دوال المساعدة
+function showInstallButton() {
+    const btn = document.getElementById('installBtn');
+    if (btn) {
+        btn.style.display = 'block';
+        console.log('👆 زر التثبيت معروض الآن');
+    }
+}
+
+function hideInstallButton() {
+    const btn = document.getElementById('installBtn');
+    if (btn) {
+        btn.style.display = 'none';
+        console.log('❌ زر التثبيت مخفي الآن');
+    }
+}
+
+function updatePWAStatus(message) {
+    const pwaStatus = document.getElementById('pwaStatus');
+    if (pwaStatus) {
+        pwaStatus.textContent = `حالة PWA: ${message}`;
+    }
+}
+
+function isRunningAsPWA() {
+    return window.matchMedia('(display-mode: standalone)').matches;
+}
 }
 
         function updatePWAStatus(message) {
